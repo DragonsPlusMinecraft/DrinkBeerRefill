@@ -73,57 +73,46 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     public void tickServer() {
-        // waiting for ingredient
         if (statusCode == 0) {
-            // ingredient slots must have no empty slot
             if (brewingInventory.getIngredients().size() == 4) {
-                // Try match Recipe
                 RecipeHolder<BrewingRecipe> recipeholder = level.getRecipeManager().getRecipeFor(RecipeRegistry.RECIPE_TYPE_BREWING.get(), brewingInventory, this.level).orElse(null);
-                if (recipeholder==null) clearResult();
+                if (recipeholder==null) {
+                    clearResult();
+                    return;
+                }
                 var recipe = recipeholder.value();
                 if (canBrew(recipe)) {
-                    // Show Standard Brewing Time & Result
-                    setResult(recipe);
-                    // Check Weather have enough cup.
-                    if (hasEnoughEmptyCap(recipe)) {
-                        startBrewing(recipe);
+                    displayResult(recipe);
+                    if (recipe.isCupQualified(brewingInventory)) {
+                        for (int i = 0; i < 4; i++) {
+                            ItemStack ingred = brewingInventory.getItem(i);
+                            if (shouldReturnBucket(ingred)) brewingInventory.setItem(i, Items.BUCKET.getDefaultInstance());
+                            else ingred.shrink(1);
+                        }
+                        brewingInventory.getItem(4).shrink(recipe.getRequiredCupCount());
+                        remainingBrewTime = recipe.getBrewingTime();
+                        statusCode = 1;
+                        updateBE();
                     }
                 }
-                // Time remainingBrewTime will be reset since it also represents Standard Brewing Time if valid in this stage
-                else {
-                    clearResult();
-                }
-            } else {
-                clearResult();
             }
         }
-        // brewing
+
         else if (statusCode == 1) {
             if (remainingBrewTime > 0) {
                 remainingBrewTime--;
             }
-            // Enter "waiting for pickup"
             else {
-                // Prevent wired glitch such as remainingTime been set to one;
                 remainingBrewTime = 0;
-                // Enter Next Stage
                 statusCode = 2;
             }
             setChanged();
         }
-        // waiting for pickup
-        else if (statusCode == 2) {
-            // Reset Stage to 0 (waiting for ingredients) after pickup Item
+        else {
             if (brewingInventory.getItem(5).isEmpty()) {
                 statusCode = 0;
                 setChanged();
             }
-        }
-        // Error status reset
-        else {
-            remainingBrewTime = 0;
-            statusCode = 0;
-            setChanged();
         }
     }
 
@@ -136,25 +125,6 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
         }
     }
 
-    private boolean hasEnoughEmptyCap(BrewingRecipe recipe) {
-        return recipe.isCupQualified(brewingInventory);
-    }
-
-    private void startBrewing(BrewingRecipe recipe) {
-        // Consume Ingredient & Cup;
-        for (int i = 0; i < 4; i++) {
-            ItemStack ingred = brewingInventory.getItem(i);
-            if (shouldReturnBucket(ingred)) brewingInventory.setItem(i, Items.BUCKET.getDefaultInstance());
-            else ingred.shrink(1);
-        }
-        brewingInventory.getItem(4).shrink(recipe.getRequiredCupCount());
-        // Set Remaining Time;
-        remainingBrewTime = recipe.getBrewingTime();
-        // Change Status Code to 1 (brewing)
-        statusCode = 1;
-        markDirty();
-    }
-
     private boolean shouldReturnBucket(ItemStack item) {
         return item.getItem() instanceof BucketItem || item.getItem() instanceof MilkBucketItem;
     }
@@ -163,16 +133,16 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
         if (!brewingInventory.getItem(5).isEmpty()) {
             brewingInventory.setItem(5, ItemStack.EMPTY);
             remainingBrewTime = 0;
-            markDirty();
+            updateBE();
         }
     }
 
-    private void setResult(BrewingRecipe recipe) {
+    private void displayResult(BrewingRecipe recipe) {
         var result = recipe.assemble(brewingInventory, level.registryAccess());
         if (!ItemStack.matches(result, brewingInventory.getItem(5))) {
             brewingInventory.setItem(5, recipe.assemble(brewingInventory, level.registryAccess()));
             remainingBrewTime = recipe.getBrewingTime();
-            markDirty();
+            updateBE();
         }
     }
 
@@ -180,7 +150,7 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
         return brewingInventory;
     }
 
-    public void markDirty() {
+    public void updateBE() {
         var pos = getBlockPos();
         var bs = level.getBlockState(pos);
         level.sendBlockUpdated(pos, bs, bs, Block.UPDATE_CLIENTS);

@@ -25,9 +25,11 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 public class RecipeBoardPackageBlock extends Block {
+    private static final Random RNG = new Random();
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     public final static VoxelShape N_S_SHAPE = Block.box(0, 1, 1, 16, 10, 15);
@@ -38,13 +40,14 @@ public class RecipeBoardPackageBlock extends Block {
         this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.NORTH));
     }
 
-    private List<ItemStack> getRecipeBoardDrop() {
-        return BuiltInRegistries.BLOCK.entrySet().stream().filter(entry -> {
+    private ItemStack getRecipeBoardDrop() {
+        var all = BuiltInRegistries.BLOCK.entrySet().stream().filter(entry -> {
             var block = entry.getValue();
             if (block instanceof RecipeBoardBlock) {
                 return ((RecipeBoardBlock) block).isAcquirableViaPackage();
             } else return false;
-        }).map(entry -> entry.getValue().asItem().getDefaultInstance()).collect(Collectors.toList());
+        }).map(entry -> entry.getValue().asItem().getDefaultInstance()).toList();
+        return all.get(RNG.nextInt(all.size()));
     }
 
     @Nullable
@@ -62,7 +65,7 @@ public class RecipeBoardPackageBlock extends Block {
     protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!world.isClientSide()) {
             world.playSound(null, pos, SoundEventRegistry.UNPACKING.get(), SoundSource.BLOCKS, 0.8f, 1f);
-            getRecipeBoardDrop().forEach(itemStack -> Containers.dropItemStack(world, pos.getX(), pos.getY(), pos.getZ(), itemStack));
+            Containers.dropItemStack(world, pos.getX(), pos.getY(), pos.getZ(), getRecipeBoardDrop());
             world.setBlock(pos, Blocks.AIR.defaultBlockState(), 1);
         }
         return InteractionResult.sidedSuccess(world.isClientSide);
