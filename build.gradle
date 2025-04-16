@@ -171,7 +171,7 @@ idea {
 
 publishMods {
     file = tasks.jar.archiveFile
-    changelog = new File("changelog/${mod_version}.md").text
+    changelog = new File("CHANGELOG.md").text
     version = mod_version
     type = BETA
     displayName = "Drink Beer Refill ${mod_version} for ${minecraft_version}"
