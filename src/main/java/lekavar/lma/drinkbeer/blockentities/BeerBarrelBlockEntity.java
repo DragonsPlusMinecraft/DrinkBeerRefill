@@ -14,6 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -87,7 +88,7 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
                         for (int i = 0; i < 4; i++) {
                             ItemStack ingred = brewingInventory.getItem(i);
                             if (shouldReturnBucket(ingred)) brewingInventory.setItem(i, Items.BUCKET.getDefaultInstance());
-                            else ingred.shrink(1);
+                            else brewingInventory.setItem(i, ItemStack.EMPTY);
                         }
                         brewingInventory.getItem(4).shrink(recipe.getRequiredCupCount());
                         remainingBrewTime = recipe.getBrewingTime();
@@ -118,11 +119,7 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
 
 
     private boolean canBrew(@Nullable BrewingRecipe recipe) {
-        if (recipe != null) {
-            return recipe.matches(brewingInventory, this.level);
-        } else {
-            return false;
-        }
+        return recipe.matches(brewingInventory, this.level);
     }
 
     private boolean shouldReturnBucket(ItemStack item) {
@@ -153,25 +150,24 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
     public void updateBE() {
         var pos = getBlockPos();
         var bs = level.getBlockState(pos);
-        level.sendBlockUpdated(pos, bs, bs, Block.UPDATE_CLIENTS);
+        level.sendBlockUpdated(pos, bs, bs, Block.UPDATE_ALL_IMMEDIATE);
         setChanged();
     }
 
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag,registries);
-        tag.put("inv", brewingInventory.createTag(registries));
-        tag.putShort("RemainingBrewTime", (short) this.remainingBrewTime);
-        tag.putShort("statusCode", (short) this.statusCode);
+        ContainerHelper.saveAllItems(tag,brewingInventory.getItems(),registries);
+        tag.putInt("RemainingBrewTime", this.remainingBrewTime);
+        tag.putInt("statusCode", this.statusCode);
     }
 
     @Override
     public void loadAdditional(@Nonnull CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag,registries);
-        this.remainingBrewTime = tag.getShort("RemainingBrewTime");
-        this.statusCode = tag.getShort("statusCode");
-        brewingInventory.fromTag((ListTag) tag.get("inv"), registries);
-
+        this.remainingBrewTime = tag.getInt("RemainingBrewTime");
+        this.statusCode = tag.getInt("statusCode");
+        ContainerHelper.loadAllItems(tag, brewingInventory.getItems(),registries);
     }
 
     @Override
@@ -187,6 +183,7 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
 
     @Override
     public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider registries) {
+        super.onDataPacket(net,pkt,registries);
         handleUpdateTag(pkt.getTag(),registries);
     }
 
@@ -199,13 +196,14 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        tag.put("inv", brewingInventory.createTag(registries));
+        ContainerHelper.saveAllItems(tag,brewingInventory.getItems(),registries);
         return tag;
     }
 
     @Override
     public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
-        brewingInventory.fromTag((ListTag) tag.get("inv"),registries);
+        super.handleUpdateTag(tag,registries);
+        ContainerHelper.loadAllItems(tag, brewingInventory.getItems(),registries);
     }
 
     public static class BrewingInventory extends SimpleContainer implements IBrewingInventory {
@@ -222,7 +220,7 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
             List<ItemStack> ret = new ArrayList<>();
             if (isEmpty()) return ret;
             for (int i = 0; i < 4; i++) {
-                if (!getItem(i).isEmpty()) ret.add(getItem(i));
+                if (!getItem(i).isEmpty()) ret.add(getItem(i).copy());
             }
             return ret;
         }

@@ -126,7 +126,7 @@ public class BrewingRecipe implements Recipe<IBrewingInventory> {
     }
 
     public boolean isCupQualified(IBrewingInventory inventory) {
-        return inventory.getCup().getItem() == cup.getItem() && inventory.getCup().getCount() >= cup.getCount();
+        return inventory.getCup().is(cup.getItem()) && inventory.getCup().getCount() >= cup.getCount();
     }
 
     public int getBrewingTime() {
