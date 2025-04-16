@@ -79,6 +79,7 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
             if (brewingInventory.getIngredients().size() == 4) {
                 // Try match Recipe
                 RecipeHolder<BrewingRecipe> recipeholder = level.getRecipeManager().getRecipeFor(RecipeRegistry.RECIPE_TYPE_BREWING.get(), brewingInventory, this.level).orElse(null);
+                if (recipeholder==null) clearResult();
                 var recipe = recipeholder.value();
                 if (canBrew(recipe)) {
                     // Show Standard Brewing Time & Result
