@@ -1,0 +1,86 @@
+plugins {
+    id 'multiloader-loader'
+    id 'net.neoforged.moddev'
+    id 'me.modmuss50.mod-publish-plugin'
+}
+
+version = "${mod_version}+neoforge"
+
+sourceSets {
+    gameTest {
+        java.srcDirs('src/gametest/java', project(':common').file('src/gametest/java'))
+        resources.srcDir('src/gametest/resources')
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += output + compileClasspath
+    }
+}
+
+configurations {
+    runtimeClasspath.extendsFrom(localRuntime)
+    gameTestImplementation.extendsFrom(implementation)
+    gameTestCompileOnly.extendsFrom(compileOnly)
+    gameTestRuntimeOnly.extendsFrom(runtimeOnly)
+}
+
+neoForge {
+    version = neo_version
+    parchment {
+        minecraftVersion = parchment_minecraft_version
+        mappingsVersion = parchment_mappings_version
+    }
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
+        }
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
+        }
+        gameTestServer {
+            type = 'gameTestServer'
+            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
+        }
+    }
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+            sourceSet(sourceSets.gameTest)
+        }
+    }
+    unitTest {
+        enable()
+        testedMod = mods."${mod_id}"
+    }
+}
+
+dependencies {
+    compileOnly "mezz.jei:jei-${jei_minecraft_version}-neoforge-api:${jei_version}"
+    localRuntime "mezz.jei:jei-${jei_minecraft_version}-neoforge:${jei_version}"
+
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+publishMods {
+    file = tasks.jar.archiveFile
+    changelog = rootProject.file('CHANGELOG.md').text
+    version = project.version
+    type = BETA
+    displayName = "Drink Beer Refill ${mod_version} for ${minecraft_version} (NeoForge)"
+    modLoaders.add('neoforge')
+    curseforge {
+        projectId = curseforge_project_id
+        accessToken = providers.environmentVariable('CURSEFORGE_TOKEN')
+        minecraftVersions.add(minecraft_version)
+        client = true
+        server = true
+    }
+    modrinth {
+        projectId = modrinth_project_id
+        accessToken = providers.environmentVariable('MODRINTH_TOKEN')
+        minecraftVersions.add(minecraft_version)
+    }
+}

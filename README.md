@@ -1,14 +1,14 @@
 # DrinkBeer Refill
 
-DrinkBeer Refill is a community revival of **Drink Beer**, bringing placeable drinks, brewing, bartending, spices, flavor combinations, and bartering to modern NeoForge.
+DrinkBeer Refill is a community revival of **Drink Beer**, bringing placeable drinks, brewing, bartending, spices, flavor combinations, and bartering to modern Fabric and NeoForge.
 
 The current revival release targets:
 
 - Minecraft 1.21.1
-- NeoForge 21.1.244 or newer
+- Fabric Loader 0.19.3 with Fabric API 0.116.12+1.21.1, or NeoForge 21.1.244 or newer
 - Java 21
 
-The `1.4.0-beta.1` line restores the authorized upstream 4.0 holiday content and beer values on top of the repaired 1.21.1 gameplay, mixed-beer migration, safe automation, and regression-test baseline.
+The `1.4.0-beta.2` line adds first-class Fabric support while preserving the authorized upstream 4.0 holiday content, repaired 1.21.1 gameplay, mixed-beer migration, safe automation, and save compatibility.
 
 ## Using the core blocks
 
@@ -41,7 +41,12 @@ Placed beer can be recovered either by breaking it or by using an empty hand. Mi
 
 ## Server configuration
 
-NeoForge creates `<world>/serverconfig/drinkbeer-server.toml` after the world is loaded.
+Server configuration is stored per world:
+
+- Fabric: `<world>/serverconfig/drinkbeer-server.json`
+- NeoForge: `<world>/serverconfig/drinkbeer-server.toml`
+
+Both files expose the same fields, defaults, and ranges. Fabric creates a missing JSON file with defaults; an invalid file is left untouched and defaults are used for that session.
 
 - `enableWorldChangingFlavorEffects` controls whether Stormy and Drying flavors may alter blocks.
 - `maxWorldChangesPerDrink` limits changes from a single drink (default: 4096). Flavor effects never force-load chunks.
@@ -59,12 +64,12 @@ Build and run the regression suite with Java 21:
 ./gradlew build
 ```
 
-The test task starts through NeoForge's JUnit integration, so tests can reference Minecraft and NeoForge classes safely. CI runs the same build on every push and pull request.
+The project is split into `common`, `fabric`, and `neoforge` modules. Shared JUnit tests run once in each loader, and both dedicated-server GameTest suites are part of the root `check`/`build`. CI publishes only the two loader-specific JARs.
 
 ## Authors and license
 
 - [Lekavar](https://github.com/Lekavar) is the original creator of Drink Beer and the author of the upstream 4.0 content.
-- [MarbleGateKeeper](https://github.com/MarbleGateKeeper) is the current maintainer and author of the NeoForge revival.
+- [MarbleGateKeeper](https://github.com/MarbleGateKeeper) is the current maintainer and author of the modern multi-loader revival.
 
 DrinkBeer Refill is distributed under **All Rights Reserved**. Redistribution, modification, relicensing, or publication of the project or derivative versions requires express written permission from the rights holders. Third-party dependencies and tools remain under their respective licenses.
 

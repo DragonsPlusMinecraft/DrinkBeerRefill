@@ -26,8 +26,21 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
-      - name: Build & Release
+      - name: Build and publish both loaders
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
-        run: ./gradlew build publishMods
+        run: ./gradlew build publishAllMods --stacktrace
+
+      - name: Upload failure reports and run logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drinkbeer-refill-release-failure-${{ github.sha }}
+          path: |
+            **/build/reports/
+            **/build/test-results/
+            **/logs/
+            **/runs/**/logs/
+            **/run/**/logs/
+          if-no-files-found: ignore

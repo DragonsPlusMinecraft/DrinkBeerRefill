@@ -1,0 +1,53 @@
+plugins {
+    id 'multiloader-common'
+    id 'net.neoforged.moddev'
+}
+
+neoForge {
+    neoFormVersion = neo_form_version
+    parchment {
+        minecraftVersion = parchment_minecraft_version
+        mappingsVersion = parchment_mappings_version
+    }
+}
+
+dependencies {
+    compileOnly "mezz.jei:jei-${jei_minecraft_version}-common-api:${jei_version}"
+
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// Shared tests are source inputs for the two loader modules. Running them in
+// vanilla common would provide neither platform hooks nor a loader lifecycle,
+// and would duplicate the intended Fabric + NeoForge executions.
+tasks.named('compileTestJava').configure { enabled = false }
+tasks.named('processTestResources').configure { enabled = false }
+tasks.named('test').configure { enabled = false }
+
+configurations {
+    commonJava {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+    commonResources {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+    commonTestJava {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+    commonTestResources {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+}
+
+artifacts {
+    commonJava sourceSets.main.java.sourceDirectories.singleFile
+    commonResources sourceSets.main.resources.sourceDirectories.singleFile
+    commonTestJava sourceSets.test.java.sourceDirectories.singleFile
+    commonTestResources sourceSets.test.resources.sourceDirectories.singleFile
+}

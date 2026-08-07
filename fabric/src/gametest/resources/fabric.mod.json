@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "drinkbeer-gametest",
+  "version": "1.0.0",
+  "name": "Drink Beer Refill GameTests",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-gametest": [
+      "lekavar.lma.drinkbeer.gametest.FabricHolidayGameTests"
+    ]
+  },
+  "depends": {
+    "drinkbeer": "*",
+    "fabric-gametest-api-v1": "*",
+    "minecraft": "~1.21.1"
+  }
+}
