@@ -9,14 +9,17 @@ import lekavar.lma.drinkbeer.managers.MixedBeerManager;
 import lekavar.lma.drinkbeer.networking.RefreshTradeBoxPayload;
 import lekavar.lma.drinkbeer.platform.ClientPlatformHooks;
 import lekavar.lma.drinkbeer.registries.BlockEntityRegistry;
+import lekavar.lma.drinkbeer.registries.BlockRegistry;
 import lekavar.lma.drinkbeer.registries.ItemRegistry;
 import lekavar.lma.drinkbeer.registries.MenuTypeRegistry;
 import lekavar.lma.drinkbeer.registries.ParticleTypeRegistry;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.particle.FlameParticle;
 import net.minecraft.client.particle.HeartParticle;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -25,6 +28,14 @@ import net.minecraft.resources.ResourceLocation;
 public final class FabricClientPlatform implements ClientPlatformHooks {
     @Override
     public void initializeClient() {
+        BlockRenderLayerMap.INSTANCE.putBlocks(
+                RenderType.cutout(),
+                BlockRegistry.COLORED_LIGHTS.get(),
+                BlockRegistry.SIDE_COLORED_LIGHTS.get(),
+                BlockRegistry.STAR_OF_BETHLEHEM.get(),
+                BlockRegistry.THE_GREAT_STAR_OF_BETHLEHEM.get()
+        );
+
         MenuScreens.register(MenuTypeRegistry.beerBarrelContainer.get(), BeerBarrelScreen::new);
         MenuScreens.register(MenuTypeRegistry.tradeBoxContainer.get(), TradeBoxScreen::new);
 

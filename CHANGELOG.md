@@ -17,6 +17,10 @@ This release migrates the project to a native Fabric and NeoForge multi-loader l
 - Kept Minecraft 1.21.1, Java 21, NeoForge 21.1.244, ModDevGradle 2.0.143, NeoForm `1.21.1-20240808.144430`, Parchment `2024.11.17`, and JEI 19.21.0.246.
 - Fabric now stores server settings in `<world>/serverconfig/drinkbeer-server.json`; NeoForge continues to use `drinkbeer-server.toml` with matching fields, defaults, and ranges.
 
+### Fixed
+
+- Fixed transparent planes on the holiday stars and colored lights rendering as black on Fabric by registering their cutout render layer.
+
 ### Compatibility
 
 - Preserved registry IDs, resource paths, NBT and codec formats, including the existing `drinkbeer:refreash_tradebox` payload ID.
