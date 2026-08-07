@@ -10,7 +10,7 @@ import net.minecraft.world.damagesource.DamageType;
 
 public class DamageRegistry {
     public final static ResourceKey<DamageType> ALCOHOL = ResourceKey.create(Registries.DAMAGE_TYPE,
-            ResourceLocation.fromNamespaceAndPath(DrinkBeer.MOD_ID, "alcohol"));
+            new ResourceLocation(DrinkBeer.MOD_ID, "alcohol"));
 
     public static DamageSource alcohol(RegistryAccess access) {
         return new DamageSource(

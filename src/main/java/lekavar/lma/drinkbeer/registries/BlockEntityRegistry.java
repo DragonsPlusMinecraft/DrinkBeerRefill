@@ -5,12 +5,9 @@ import lekavar.lma.drinkbeer.blockentities.BartendingTableBlockEntity;
 import lekavar.lma.drinkbeer.blockentities.BeerBarrelBlockEntity;
 import lekavar.lma.drinkbeer.blockentities.MixedBeerBlockEntity;
 import lekavar.lma.drinkbeer.blockentities.TradeBoxBlockEntity;
-import lekavar.lma.drinkbeer.client.renderers.BartendingTableBlockEntityRenderer;
-import lekavar.lma.drinkbeer.client.renderers.MixedBeerBlockEntityRenderer;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraftforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
 
@@ -21,8 +18,4 @@ public class BlockEntityRegistry {
     public static final Supplier<BlockEntityType<TradeBoxBlockEntity>> TRADE_BOX_TILEENTITY = BLOKC_ENTITIES.register("trade_box_normal_blockentity", () -> BlockEntityType.Builder.of(TradeBoxBlockEntity::new, BlockRegistry.TRADE_BOX.get()).build(null));
     public static final Supplier<BlockEntityType<MixedBeerBlockEntity>> MIXED_BEER_TILEENTITY = BLOKC_ENTITIES.register("mixed_beer_blockentity", () -> BlockEntityType.Builder.of(MixedBeerBlockEntity::new, BlockRegistry.MIXED_BEER.get()).build(null));
 
-    public static void registerRenderer(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerBlockEntityRenderer(BlockEntityRegistry.MIXED_BEER_TILEENTITY.get(), MixedBeerBlockEntityRenderer::new);
-        event.registerBlockEntityRenderer(BlockEntityRegistry.BARTENDING_TABLE_TILEENTITY.get(), BartendingTableBlockEntityRenderer::new);
-    }
 }

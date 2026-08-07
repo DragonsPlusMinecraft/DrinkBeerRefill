@@ -23,9 +23,9 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.SlotItemHandler;
-import net.neoforged.neoforge.items.wrapper.InvWrapper;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.SlotItemHandler;
+import net.minecraftforge.items.wrapper.InvWrapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -99,7 +99,7 @@ public class TradeBoxMenu extends AbstractContainerMenu {
         num.set(0);
         IntStream.range(0, 2).forEach(j ->
                 IntStream.range(0, 4).forEach(i -> {
-                    this.goodSlots.add(this.addSlot(new OutputSlot(goodInventory, num.get(), 85 + i * 18, 26 + j * 18, syncData, this)));
+                    this.goodSlots.add(this.addSlot(new OutputSlot(goodInventory, num.get(), 85 + i * 18, 26 + j * 18, this)));
                     num.getAndIncrement();
                 }));
 
@@ -163,7 +163,6 @@ public class TradeBoxMenu extends AbstractContainerMenu {
         return syncData.get(3);
     }
 
-    // @Dist(EnvType.CLIENT)
     public void setInventoryChangeListener(Runnable inventoryChangeListener) {
         this.inventoryChangeListener = inventoryChangeListener;
     }
@@ -392,12 +391,10 @@ public class TradeBoxMenu extends AbstractContainerMenu {
     }
 
     static class OutputSlot extends Slot {
-        private final ContainerData syncData;
         private final TradeBoxMenu tradeBoxMenu;
 
-        public OutputSlot(Container p_i1824_1_, int p_i1824_2_, int p_i1824_3_, int p_i1824_4_, ContainerData syncData, TradeBoxMenu tradeBoxMenu) {
+        public OutputSlot(Container p_i1824_1_, int p_i1824_2_, int p_i1824_3_, int p_i1824_4_, TradeBoxMenu tradeBoxMenu) {
             super(p_i1824_1_, p_i1824_2_, p_i1824_3_, p_i1824_4_);
-            this.syncData = syncData;
             this.tradeBoxMenu = tradeBoxMenu;
         }
 

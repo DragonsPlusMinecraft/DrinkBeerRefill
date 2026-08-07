@@ -6,6 +6,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -62,7 +63,7 @@ public class RecipeBoardPackageBlock extends Block {
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
+    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (!world.isClientSide()) {
             world.playSound(null, pos, SoundEventRegistry.UNPACKING.get(), SoundSource.BLOCKS, 0.8f, 1f);
             Containers.dropItemStack(world, pos.getX(), pos.getY(), pos.getZ(), getRecipeBoardDrop());

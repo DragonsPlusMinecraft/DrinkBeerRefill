@@ -7,22 +7,25 @@ import lekavar.lma.drinkbeer.registries.BlockEntityRegistry;
 import lekavar.lma.drinkbeer.registries.DrinkBeerTags;
 import lekavar.lma.drinkbeer.utils.beer.Beers;
 import lekavar.lma.drinkbeer.utils.mixedbeer.Spices;
+import lekavar.lma.drinkbeer.utils.ContainerNbtHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -37,6 +40,10 @@ public class BartendingTableBlockEntity extends BlockEntity {
     private final IItemHandler beerInputHandler = new BartendingTableItemHandler(this, HandlerMode.BEER_INPUT);
     private final IItemHandler spiceInputHandler = new BartendingTableItemHandler(this, HandlerMode.SPICE_INPUT);
     private final IItemHandler outputHandler = new BartendingTableItemHandler(this, HandlerMode.OUTPUT);
+    private LazyOptional<IItemHandler> combinedCapability = LazyOptional.of(() -> combinedItemHandler);
+    private LazyOptional<IItemHandler> beerInputCapability = LazyOptional.of(() -> beerInputHandler);
+    private LazyOptional<IItemHandler> spiceInputCapability = LazyOptional.of(() -> spiceInputHandler);
+    private LazyOptional<IItemHandler> outputCapability = LazyOptional.of(() -> outputHandler);
 
     public BartendingTableBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.BARTENDING_TABLE_TILEENTITY.get(), pos, state);
@@ -136,8 +143,10 @@ public class BartendingTableBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider registries) {
-        handleUpdateTag(pkt.getTag(),registries);
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        if (pkt.getTag() != null) {
+            handleUpdateTag(pkt.getTag());
+        }
     }
 
     @Override
@@ -148,28 +157,85 @@ public class BartendingTableBlockEntity extends BlockEntity {
     }
 
     @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = super.getUpdateTag(registries);
-        ContainerHelper.saveAllItems(tag, this.inv.getItems(), true, registries);
+    public CompoundTag getUpdateTag() {
+        CompoundTag tag = super.getUpdateTag();
+        ContainerNbtHelper.saveAllItems(tag, this.inv);
         return tag;
     }
 
     @Override
-    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
-        super.handleUpdateTag(tag, registries);
-        ContainerHelper.loadAllItems(tag, this.inv.getItems(), registries);
+    public void handleUpdateTag(CompoundTag tag) {
+        super.handleUpdateTag(tag);
+        loadInventory(tag);
     }
 
     @Override
-    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag,registries);
-        ContainerHelper.saveAllItems(tag, this.inv.getItems(), true, registries);
+    public void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        ContainerNbtHelper.saveAllItems(tag, this.inv);
     }
 
     @Override
-    public void loadAdditional(@Nonnull CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag,registries);
-        ContainerHelper.loadAllItems(tag, this.inv.getItems(), registries);
+    public void load(@Nonnull CompoundTag tag) {
+        super.load(tag);
+        loadInventory(tag);
+    }
+
+    private void loadInventory(CompoundTag tag) {
+        inv.clearContent();
+        if (tag.contains("Items", Tag.TAG_LIST)) {
+            ContainerNbtHelper.loadAllItems(tag, this.inv);
+            return;
+        }
+
+        boolean migrated = false;
+        if (tag.contains("input", Tag.TAG_COMPOUND)) {
+            inv.setItem(BASE_BEER_SLOT, ItemStack.of(tag.getCompound("input")));
+            migrated = true;
+        }
+        if (tag.contains("output", Tag.TAG_COMPOUND)) {
+            inv.setItem(MIXED_BEER_SLOT, ItemStack.of(tag.getCompound("output")));
+            migrated = true;
+        }
+        if (migrated) {
+            setChanged();
+        }
+    }
+
+    @Override
+    public void invalidateCaps() {
+        super.invalidateCaps();
+        combinedCapability.invalidate();
+        beerInputCapability.invalidate();
+        spiceInputCapability.invalidate();
+        outputCapability.invalidate();
+    }
+
+    @Override
+    public void reviveCaps() {
+        super.reviveCaps();
+        combinedCapability = LazyOptional.of(() -> combinedItemHandler);
+        beerInputCapability = LazyOptional.of(() -> beerInputHandler);
+        spiceInputCapability = LazyOptional.of(() -> spiceInputHandler);
+        outputCapability = LazyOptional.of(() -> outputHandler);
+    }
+
+    @NotNull
+    @Override
+    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> capability, @Nullable Direction side) {
+        if (capability == ForgeCapabilities.ITEM_HANDLER) {
+            if (side == null) {
+                return combinedCapability.cast();
+            }
+            if (side == Direction.UP) {
+                return beerInputCapability.cast();
+            }
+            if (side == Direction.DOWN) {
+                return outputCapability.cast();
+            }
+            return spiceInputCapability.cast();
+        }
+        return super.getCapability(capability, side);
     }
 
     static class OneItemContainer extends SimpleContainer {

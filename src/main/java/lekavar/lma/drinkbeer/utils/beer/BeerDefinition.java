@@ -25,10 +25,10 @@ public record BeerDefinition(
     public FoodProperties foodProperties(float saturationModifier) {
         FoodProperties.Builder builder = new FoodProperties.Builder()
                 .nutrition(nutrition)
-                .saturationModifier(saturationModifier)
-                .alwaysEdible();
+                .saturationMod(saturationModifier)
+                .alwaysEat();
         if (effectFactory != null) {
-            builder.effect(effectFactory, 1.0F);
+            builder.effect(effectFactory.get(), 1.0F);
         }
         return builder.build();
     }

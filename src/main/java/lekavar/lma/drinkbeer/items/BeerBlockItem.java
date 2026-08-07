@@ -7,15 +7,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.Block;
-import org.joml.Vector3d;
-
-import static java.lang.Math.pow;
-import static net.minecraft.util.Mth.sqrt;
 
 
 public class BeerBlockItem extends BlockItem {
-    protected final static float MAX_PLACE_DISTANCE = (float) 2;
+    protected static final double MAX_PLACE_DISTANCE = 2.0D;
 
     public BeerBlockItem(Block block, Properties properties) {
         super(block, properties);
@@ -26,8 +23,9 @@ public class BeerBlockItem extends BlockItem {
         return SoundEventRegistry.DRINKING_BEER.get();
     }
 
-    public float getDistance(Vector3d p1, Vector3d p2) {
-        return sqrt((float) (pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2) + pow(p1.z - p2.z, 2)));
+    protected boolean isWithinPlaceDistance(BlockPlaceContext context) {
+        Player player = context.getPlayer();
+        return player == null || context.getClickLocation().distanceTo(player.position()) <= MAX_PLACE_DISTANCE;
     }
 
     public void giveEmptyMugBack(LivingEntity user) {

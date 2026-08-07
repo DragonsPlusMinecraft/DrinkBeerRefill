@@ -12,7 +12,7 @@ import java.awt.*;
 
 public class BeerBarrelScreen extends AbstractContainerScreen<BeerBarrelMenu> {
 
-    private final ResourceLocation BEER_BARREL_CONTAINER_RESOURCE = ResourceLocation.fromNamespaceAndPath(DrinkBeer.MOD_ID, "textures/gui/container/beer_barrel.png");
+    private final ResourceLocation BEER_BARREL_CONTAINER_RESOURCE = new ResourceLocation(DrinkBeer.MOD_ID, "textures/gui/container/beer_barrel.png");
     private final int textureWidth = 176;
     private final int textureHeight = 166;
     private Inventory inventory;

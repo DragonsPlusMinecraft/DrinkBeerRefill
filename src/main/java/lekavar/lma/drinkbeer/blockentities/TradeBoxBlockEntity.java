@@ -7,11 +7,11 @@ import lekavar.lma.drinkbeer.utils.tradebox.Good;
 import lekavar.lma.drinkbeer.utils.tradebox.Locations;
 import lekavar.lma.drinkbeer.utils.tradebox.Residents;
 import lekavar.lma.drinkbeer.utils.tradebox.TradeMission;
+import lekavar.lma.drinkbeer.utils.ContainerNbtHelper;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 
 public class TradeBoxBlockEntity extends BlockEntity implements MenuProvider {
     public final SimpleContainer goodInventory = new SimpleContainer(8) {
@@ -109,9 +110,9 @@ public class TradeBoxBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     @Override
-    public void saveAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag,registries);
-        ContainerHelper.saveAllItems(tag, this.goodInventory.getItems(), registries);
+    public void saveAdditional(@NotNull CompoundTag tag) {
+        super.saveAdditional(tag);
+        ContainerNbtHelper.saveAllItems(tag, this.goodInventory);
         tag.putInt("CoolingTime", this.coolingTime);
         tag.putInt("LocationId", this.locationId);
         tag.putInt("ResidentId", this.residentId);
@@ -119,13 +120,25 @@ public class TradeBoxBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     @Override
-    public void loadAdditional(@Nonnull CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag,registries);
-        ContainerHelper.loadAllItems(tag, this.goodInventory.getItems(), registries);
-        this.coolingTime = Math.max(0, tag.getInt("CoolingTime"));
-        this.locationId = Locations.byId(tag.getInt("LocationId")).getId();
-        this.residentId = Residents.byId(tag.getInt("ResidentId")).getId();
-        this.process = tag.getInt("Process") == PROCESS_TRADING ? PROCESS_TRADING : PROCESS_COOLING;
+    public void load(@Nonnull CompoundTag tag) {
+        super.load(tag);
+        this.goodInventory.clearContent();
+        ContainerNbtHelper.loadAllItems(tag, this.goodInventory);
+        int rawCoolingTime = tag.getInt("CoolingTime");
+        int rawLocationId = tag.getInt("LocationId");
+        int rawResidentId = tag.getInt("ResidentId");
+        int rawProcess = tag.getInt("Process");
+        this.coolingTime = Math.max(0, rawCoolingTime);
+        this.locationId = Locations.byId(rawLocationId).getId();
+        this.residentId = Residents.byId(rawResidentId).getId();
+        this.process = rawProcess == PROCESS_TRADING ? PROCESS_TRADING : PROCESS_COOLING;
+        boolean legacyNumericTags = List.of("CoolingTime", "LocationId", "ResidentId", "Process").stream()
+                .anyMatch(key -> tag.contains(key, Tag.TAG_ANY_NUMERIC)
+                        && !tag.contains(key, Tag.TAG_INT));
+        if (legacyNumericTags || rawCoolingTime != coolingTime || rawLocationId != locationId
+                || rawResidentId != residentId || rawProcess != process) {
+            setChanged();
+        }
     }
 
     public static void tick(Level world, BlockPos pos, BlockState state, TradeBoxBlockEntity tradeboxEntity) {

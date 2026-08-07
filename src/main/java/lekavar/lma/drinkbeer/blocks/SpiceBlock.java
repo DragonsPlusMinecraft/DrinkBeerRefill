@@ -5,6 +5,7 @@ import lekavar.lma.drinkbeer.utils.mixedbeer.Spices;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -56,7 +57,7 @@ public class SpiceBlock extends HalfTransparentBlock {
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (level.isClientSide) {
             SimpleParticleType particle = Spices.byItem(this.asItem()).getFlavor().getParticle();
             double x = (double) pos.getX() + 0.5D;

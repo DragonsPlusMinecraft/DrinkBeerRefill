@@ -1,0 +1,49 @@
+{
+  "type": "drinkbeer:brewing",
+  "ingredients": [
+    [
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "tag": "forge:crops/wheat"
+      }
+    ],
+    [
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "tag": "forge:crops/wheat"
+      }
+    ],
+    [
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "tag": "forge:crops/wheat"
+      }
+    ],
+    [
+      {
+        "item": "minecraft:packed_ice"
+      },
+      {
+        "item": "minecraft:blue_ice"
+      },
+      {
+        "item": "minecraft:ice"
+      }
+    ]
+  ],
+  "cup": {
+    "item": "drinkbeer:empty_beer_mug",
+    "count": 4
+  },
+  "brewing_time": 24000,
+  "result": {
+    "item": "drinkbeer:beer_mug_haars_icey_pale_lager",
+    "count": 4
+  }
+}

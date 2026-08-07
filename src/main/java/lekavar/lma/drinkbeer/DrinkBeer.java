@@ -2,17 +2,19 @@ package lekavar.lma.drinkbeer;
 
 import lekavar.lma.drinkbeer.networking.NetWorking;
 import lekavar.lma.drinkbeer.registries.*;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.config.ModConfig;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 @Mod(DrinkBeer.MOD_ID)
 public class DrinkBeer {
 
     public static final String MOD_ID = "drinkbeer";
 
-    public DrinkBeer(IEventBus modEventBus, ModContainer modContainer) {
+    public DrinkBeer() {
+        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         MobEffectRegistry.STATUS_EFFECTS.register(modEventBus);
         ItemRegistry.ITEMS.register(modEventBus);
@@ -24,13 +26,8 @@ public class DrinkBeer {
         RecipeRegistry.RECIPE_SERIALIZERS.register(modEventBus);
         ParticleTypeRegistry.PARTICLES.register(modEventBus);
         CreativeTabRegistry.TABS.register(modEventBus);
-        DataComponentTypeRegistry.DATA_COMPONENTS.register(modEventBus);
-
-        modEventBus.addListener(CapabilityRegistry::registerCapabilities);
-
-        modEventBus.addListener(NetWorking::init);
-
-        modContainer.registerConfig(ModConfig.Type.SERVER, DrinkBeerConfig.SPEC);
+        NetWorking.init();
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, DrinkBeerConfig.SPEC);
     }
 
 }

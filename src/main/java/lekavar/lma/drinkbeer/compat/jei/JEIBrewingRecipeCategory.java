@@ -1,17 +1,13 @@
 package lekavar.lma.drinkbeer.compat.jei;
 
-import com.mojang.serialization.Codec;
 import lekavar.lma.drinkbeer.DrinkBeer;
 import lekavar.lma.drinkbeer.recipes.BrewingRecipe;
 import lekavar.lma.drinkbeer.registries.ItemRegistry;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
-import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
-import mezz.jei.api.helpers.ICodecHelper;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
-import mezz.jei.api.recipe.IRecipeManager;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
@@ -22,6 +18,9 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class JEIBrewingRecipeCategory implements IRecipeCategory<BrewingRecipe> {
@@ -35,7 +34,7 @@ public class JEIBrewingRecipeCategory implements IRecipeCategory<BrewingRecipe> 
 
     public JEIBrewingRecipeCategory(IGuiHelper helper) {
         guiHelper = helper;
-        background = helper.createDrawable(ResourceLocation.fromNamespaceAndPath(DrinkBeer.MOD_ID, "textures/gui/jei/brewing_gui.png"),
+        background = helper.createDrawable(new ResourceLocation(DrinkBeer.MOD_ID, "textures/gui/jei/brewing_gui.png"),
                 0, 0, 175, 69);
         icon = helper.createDrawableItemStack(new ItemStack(ItemRegistry.BEER_MUG.get()));
     }
@@ -51,13 +50,8 @@ public class JEIBrewingRecipeCategory implements IRecipeCategory<BrewingRecipe> 
     }
 
     @Override
-    public int getWidth() {
-        return 175;
-    }
-
-    @Override
-    public int getHeight() {
-        return 69;
+    public IDrawable getBackground() {
+        return background;
     }
 
     @Override
@@ -88,39 +82,35 @@ public class JEIBrewingRecipeCategory implements IRecipeCategory<BrewingRecipe> 
 
     @Override
     public void draw(BrewingRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
-        background.draw(guiGraphics, 0, 0);
         IDrawable drawable = guiHelper.createDrawableItemStack(recipe.getBeerCup());
         drawable.draw(guiGraphics, 73, 40);
     }
 
     @Override
-    public void getTooltip(ITooltipBuilder tooltip, BrewingRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+    public List<Component> getTooltipStrings(BrewingRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+        List<Component> tooltip = new ArrayList<>();
         if (!inTransferBottomRange(mouseX, mouseY)) {
             if (inCupSlotRange(mouseX, mouseY)) {
                 tooltip.add(Component.translatable("drinkbeer.jei.tooltip.cup_slot")
-                        .setStyle(Style.EMPTY.withColor(TextColor.parseColor(DRINK_BEER_YELLOW).getOrThrow())));
+                        .setStyle(Style.EMPTY.withColor(TextColor.parseColor(DRINK_BEER_YELLOW))));
                 tooltip.add(Component.translatable("drinkbeer.jei.tooltip.cup_1")
-                        .setStyle(Style.EMPTY.withColor(TextColor.parseColor(NIGHT_HOWL_CUP_HEX_COLOR).getOrThrow()))
+                        .setStyle(Style.EMPTY.withColor(TextColor.parseColor(NIGHT_HOWL_CUP_HEX_COLOR)))
                         .append(Component.literal(recipe.getRequiredCupCount() + " ")
-                                .withStyle(Style.EMPTY.withBold(true).withColor(TextColor.parseColor(DRINK_BEER_YELLOW).getOrThrow())))
+                                .withStyle(Style.EMPTY.withBold(true).withColor(TextColor.parseColor(DRINK_BEER_YELLOW))))
                         .append(Component.translatable(recipe.getBeerCup().getItem().getDescriptionId())
                                 .withStyle(ChatFormatting.WHITE))
                         .append(Component.translatable("drinkbeer.jei.tooltip.cup_2")
-                                .setStyle(Style.EMPTY.withColor(TextColor.parseColor(NIGHT_HOWL_CUP_HEX_COLOR).getOrThrow()))));
+                                .setStyle(Style.EMPTY.withColor(TextColor.parseColor(NIGHT_HOWL_CUP_HEX_COLOR)))));
             } else {
                 int brewingTimeMin = (recipe.getBrewingTime() / 20) / 60;
                 int brewingTimeSec = recipe.getBrewingTime() / 20 - brewingTimeMin * 60;
                 tooltip.add(Component.translatable("drinkbeer.jei.tooltip.brewing")
-                        .setStyle(Style.EMPTY.withColor(TextColor.parseColor(PUMPKIN_DRINK_CUP_HEX_COLOR).getOrThrow()))
+                        .setStyle(Style.EMPTY.withColor(TextColor.parseColor(PUMPKIN_DRINK_CUP_HEX_COLOR)))
                         .append(Component.literal(brewingTimeMin + ":" + (brewingTimeSec < 10 ? "0" + brewingTimeSec : brewingTimeSec))
-                                .withStyle(Style.EMPTY.withBold(true).withColor(TextColor.parseColor(DRINK_BEER_YELLOW).getOrThrow()))));
+                                .withStyle(Style.EMPTY.withBold(true).withColor(TextColor.parseColor(DRINK_BEER_YELLOW)))));
             }
         }
-    }
-
-    @Override
-    public Codec<BrewingRecipe> getCodec(ICodecHelper codecHelper, IRecipeManager recipeManager) {
-        return BrewingRecipe.Serializer.CODEC.codec();
+        return tooltip;
     }
 
     private boolean inCupSlotRange(double mouseX, double mouseY) {

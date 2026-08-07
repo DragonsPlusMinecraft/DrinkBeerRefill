@@ -9,7 +9,7 @@ import net.minecraft.world.item.Item;
 public final class DrinkBeerTags {
     public static final TagKey<Item> BEERS = TagKey.create(
             Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(DrinkBeer.MOD_ID, "beers")
+            new ResourceLocation(DrinkBeer.MOD_ID, "beers")
     );
 
     private DrinkBeerTags() {

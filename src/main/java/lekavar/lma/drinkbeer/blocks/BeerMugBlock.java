@@ -6,7 +6,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -26,7 +25,7 @@ import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.minecraftforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nullable;
 
@@ -69,29 +68,8 @@ public class BeerMugBlock extends Block {
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if(!world.isClientSide()){
-            ItemStack takeBackBeer = state.getBlock().asItem().getDefaultInstance();
-            ItemHandlerHelper.giveItemToPlayer(player, takeBackBeer);
-            int amount = state.getValue(AMOUNT);
-            switch (amount) {
-                case 3:
-                case 2:
-                    world.setBlockAndUpdate(pos, state.getBlock().defaultBlockState().setValue(AMOUNT, amount - 1).setValue(FACING, state.getValue(FACING)));
-                    world.playSound(null, pos, SoundEvents.WOOD_PLACE, SoundSource.AMBIENT, 0.5f, 0.5f);
-                    break;
-                default:
-                    world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
-                    world.playSound(null, pos, SoundEvents.WOOD_PLACE, SoundSource.AMBIENT, 0.5f, 0.5f);
-            }
-        }
-        return InteractionResult.sidedSuccess(world.isClientSide);
-    }
-
-    @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         ItemStack itemStack = player.getItemInHand(hand);
-        // Placing Beer
         if (itemStack.getItem() == state.getBlock().asItem()) {
             if (!world.isClientSide()) {
                 int amount = state.getValue(AMOUNT);
@@ -117,9 +95,21 @@ public class BeerMugBlock extends Block {
                     default: {}
                 }
             }
-            return ItemInteractionResult.sidedSuccess(world.isClientSide);
+            return InteractionResult.sidedSuccess(world.isClientSide);
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+
+        if(!world.isClientSide()){
+            ItemStack takeBackBeer = state.getBlock().asItem().getDefaultInstance();
+            ItemHandlerHelper.giveItemToPlayer(player, takeBackBeer);
+            int amount = state.getValue(AMOUNT);
+            if (amount > 1) {
+                world.setBlockAndUpdate(pos, state.getBlock().defaultBlockState().setValue(AMOUNT, amount - 1).setValue(FACING, state.getValue(FACING)));
+            } else {
+                world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+            }
+            world.playSound(null, pos, SoundEvents.WOOD_PLACE, SoundSource.AMBIENT, 0.5f, 0.5f);
+        }
+        return InteractionResult.sidedSuccess(world.isClientSide);
     }
 
 

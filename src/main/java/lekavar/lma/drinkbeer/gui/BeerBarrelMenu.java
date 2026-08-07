@@ -17,9 +17,9 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.SlotItemHandler;
-import net.neoforged.neoforge.items.wrapper.InvWrapper;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.SlotItemHandler;
+import net.minecraftforge.items.wrapper.InvWrapper;
 
 public class BeerBarrelMenu extends AbstractContainerMenu {
     private static final int STATUS_CODE = 1;

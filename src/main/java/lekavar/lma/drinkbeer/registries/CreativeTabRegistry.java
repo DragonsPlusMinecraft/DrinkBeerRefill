@@ -1,19 +1,19 @@
 package lekavar.lma.drinkbeer.registries;
 
 import lekavar.lma.drinkbeer.DrinkBeer;
-import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.function.Supplier;
 
 public class CreativeTabRegistry {
     public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, DrinkBeer.MOD_ID);
-    public static final Holder<CreativeModeTab> GENERAL = TABS.register("drinkbeer.general", () -> CreativeModeTab.builder()
+    public static final RegistryObject<CreativeModeTab> GENERAL = TABS.register("drinkbeer.general", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.drinkbeer.general"))
             .icon(() -> new ItemStack(BlockRegistry.BEER_BARREL.get()))
             .withTabsBefore(CreativeModeTabs.SPAWN_EGGS)
@@ -63,10 +63,10 @@ public class CreativeTabRegistry {
                 output.accept(ItemRegistry.SPICE_DRIED_SELAGINELLA.get());
             }).build());
 
-    public static final Supplier<CreativeModeTab> BEER = TABS.register("drinkbeer.beer", () -> CreativeModeTab.builder()
+    public static final RegistryObject<CreativeModeTab> BEER = TABS.register("drinkbeer.beer", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.drinkbeer.beer"))
             .icon(() -> new ItemStack(BlockRegistry.BEER_BARREL.get()))
-            .withTabsBefore(GENERAL.getKey())
+            .withTabsBefore(GENERAL.getId())
             .displayItems((parameters, output) -> {
                 output.accept(ItemRegistry.BEER_MUG.get());
                 output.accept(ItemRegistry.BEER_MUG_BLAZE_STOUT.get());

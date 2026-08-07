@@ -12,13 +12,12 @@ import mezz.jei.api.registration.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
 
 @JeiPlugin
 public class Plugin implements IModPlugin {
     @Override
     public ResourceLocation getPluginUid() {
-        return ResourceLocation.fromNamespaceAndPath(DrinkBeer.MOD_ID, "jei_plugin");
+        return new ResourceLocation(DrinkBeer.MOD_ID, "jei_plugin");
     }
 
     @Override
@@ -28,7 +27,9 @@ public class Plugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        registration.addRecipes(JEIBrewingRecipeCategory.TYPE, Minecraft.getInstance().level.getRecipeManager().getAllRecipesFor(RecipeRegistry.RECIPE_TYPE_BREWING.get()).stream().map(RecipeHolder::value).toList());
+        if (Minecraft.getInstance().level != null) {
+            registration.addRecipes(JEIBrewingRecipeCategory.TYPE, Minecraft.getInstance().level.getRecipeManager().getAllRecipesFor(RecipeRegistry.RECIPE_TYPE_BREWING.get()));
+        }
     }
 
     @Override

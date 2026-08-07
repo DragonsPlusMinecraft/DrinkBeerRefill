@@ -1,6 +1,5 @@
 package lekavar.lma.drinkbeer.blocks;
 
-import com.mojang.serialization.MapCodec;
 import lekavar.lma.drinkbeer.blockentities.BartendingTableBlockEntity;
 import lekavar.lma.drinkbeer.items.SpiceBlockItem;
 import lekavar.lma.drinkbeer.registries.DrinkBeerTags;
@@ -13,7 +12,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -34,12 +32,11 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.minecraftforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nullable;
 
 public class BartendingTableBlock extends BaseEntityBlock {
-    public static final MapCodec<BartendingTableBlock> CODEC = simpleCodec(pro->new BartendingTableBlock());
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty OPENED = BooleanProperty.create("opened");
     public static final IntegerProperty TYPE = IntegerProperty.create("type", 1, 2);
@@ -77,56 +74,42 @@ public class BartendingTableBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
-
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (world.isClientSide()) {
-            return InteractionResult.SUCCESS;
-        }
-        if (world.getBlockEntity(pos) instanceof BartendingTableBlockEntity bartendingTableBlockEntity) {
-            if (isDrawerHit(state, hitResult) || player.isShiftKeyDown()) {
-                toggleDrawer(state, world, pos);
-            } else {
-                ItemStack beer = bartendingTableBlockEntity.takeBeer(false);
-                if (beer.isEmpty()) {
-                    player.displayClientMessage(Component.translatable("message.drinkbeer.bartending_table.no_beer"), true);
-                } else {
-                    ItemHandlerHelper.giveItemToPlayer(player, beer);
-                    world.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.4f, 1.0f);
-                }
-            }
-        }
-        return InteractionResult.CONSUME;
-    }
-
-    @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (player.isShiftKeyDown()) {
             if (!world.isClientSide()) {
                 toggleDrawer(state, world, pos);
             }
-            return ItemInteractionResult.sidedSuccess(world.isClientSide());
+            return InteractionResult.sidedSuccess(world.isClientSide());
         }
 
         ItemStack itemStack = player.getItemInHand(hand);
         boolean isBeer = itemStack.is(DrinkBeerTags.BEERS);
         boolean isSpice = itemStack.getItem() instanceof SpiceBlockItem;
-        if (!isBeer && !isSpice) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-        }
         if (world.isClientSide()) {
-            return ItemInteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
         if (world.getBlockEntity(pos) instanceof BartendingTableBlockEntity bartendingTableBlockEntity) {
+            if (!isBeer && !isSpice) {
+                if (isDrawerHit(state, hitResult)) {
+                    toggleDrawer(state, world, pos);
+                } else {
+                    ItemStack beer = bartendingTableBlockEntity.takeBeer(false);
+                    if (beer.isEmpty()) {
+                        player.displayClientMessage(Component.translatable("message.drinkbeer.bartending_table.no_beer"), true);
+                    } else {
+                        ItemHandlerHelper.giveItemToPlayer(player, beer);
+                        world.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.4f, 1.0f);
+                    }
+                }
+                return InteractionResult.CONSUME;
+            }
+
             BartendingTableBlockEntity.TableActionResult result;
             if (isBeer) {
                 result = bartendingTableBlockEntity.placeBeer(itemStack);
             } else if (!state.getValue(OPENED)) {
                 player.displayClientMessage(Component.translatable("message.drinkbeer.bartending_table.drawer_closed"), true);
-                return ItemInteractionResult.CONSUME;
+                return InteractionResult.CONSUME;
             } else {
                 result = bartendingTableBlockEntity.putSpice(itemStack);
             }
@@ -140,7 +123,7 @@ public class BartendingTableBlock extends BaseEntityBlock {
                 showActionFailure(player, result);
             }
         }
-        return ItemInteractionResult.CONSUME;
+        return InteractionResult.CONSUME;
     }
 
     private static boolean isDrawerHit(BlockState state, BlockHitResult hitResult) {
@@ -166,7 +149,7 @@ public class BartendingTableBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof BartendingTableBlockEntity blockEntity) {
             Containers.dropContents(level, pos, blockEntity.getInventory());
             level.updateNeighbourForOutputSignal(pos, this);

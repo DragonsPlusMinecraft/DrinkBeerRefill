@@ -7,7 +7,6 @@ import lekavar.lma.drinkbeer.networking.NetWorking;
 import lekavar.lma.drinkbeer.utils.Convert;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ImageButton;
-import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.locale.Language;
@@ -18,13 +17,10 @@ import net.minecraft.world.entity.player.Inventory;
 import java.awt.*;
 
 public class TradeBoxScreen extends AbstractContainerScreen<TradeBoxMenu> {
-    private static final ResourceLocation TRADE_BOX_GUI = ResourceLocation.fromNamespaceAndPath(DrinkBeer.MOD_ID, "textures/gui/container/trade_box.png");
-    private static final ResourceLocation REFRESH_WIDGET = ResourceLocation.fromNamespaceAndPath(DrinkBeer.MOD_ID, "container/reroll");
-    private static final ResourceLocation REFRESH_WIDGET_BLUE = ResourceLocation.fromNamespaceAndPath(DrinkBeer.MOD_ID, "container/reroll_blue");
-    private static final WidgetSprites REFRESH_WIDGET_SPRITE = new WidgetSprites(REFRESH_WIDGET,REFRESH_WIDGET_BLUE);
+    private static final ResourceLocation TRADE_BOX_GUI = new ResourceLocation(DrinkBeer.MOD_ID, "textures/gui/container/trade_box.png");
     private final int textureWidth = 176;
     private final int textureHeight = 166;
-    TradeBoxMenu container;
+    private final TradeBoxMenu container;
 
     public TradeBoxScreen(TradeBoxMenu screenContainer, Inventory inv, Component title) {
         super(screenContainer, inv, title);
@@ -70,25 +66,20 @@ public class TradeBoxScreen extends AbstractContainerScreen<TradeBoxMenu> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        renderBackground(guiGraphics,mouseX,mouseY,partialTicks);
+        renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
     @Override
-    protected boolean isHovering(int xPosition, int yPosition, int width, int height, double pointX, double pointY) {
-        return super.isHovering(xPosition, yPosition, width, height, pointX, pointY);
-    }
-
-    @Override
     protected void init() {
+        super.init();
         int x = (width - getXSize()) / 2;
         int y = (height - getYSize()) / 2;
-        this.addRenderableWidget(new ImageButton(x + 156, y + 5, 16, 16, REFRESH_WIDGET_SPRITE, (buttonWidget) -> {
+        this.addRenderableWidget(new ImageButton(x + 156, y + 5, 15, 15, 210, 0, 0, TRADE_BOX_GUI, (buttonWidget) -> {
             if (container.isTrading()) {
                 NetWorking.sendRefreshTradebox(container.getBlockPos());
             }
         }));
-        super.init();
     }
 }

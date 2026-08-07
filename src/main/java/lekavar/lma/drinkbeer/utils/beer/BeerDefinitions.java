@@ -18,7 +18,7 @@ public final class BeerDefinitions {
     public static final BeerDefinition SWEET_BERRY_KRIEK = new BeerDefinition(
             5, 1, () -> new MobEffectInstance(MobEffects.REGENERATION, 400), true, BeerSpecialAction.NONE);
     public static final BeerDefinition HAARS_ICEY_PALE_LAGER = new BeerDefinition(
-            6, 1, () -> new MobEffectInstance(MobEffectRegistry.DRUNK_FROST_WALKER, 1200), true, BeerSpecialAction.NONE);
+            6, 1, () -> new MobEffectInstance(MobEffectRegistry.DRUNK_FROST_WALKER.get(), 1200), true, BeerSpecialAction.NONE);
     public static final BeerDefinition PUMPKIN_KVASS = new BeerDefinition(
             7, 9, null, false, BeerSpecialAction.NONE);
     public static final BeerDefinition FROTHY_PINK_EGGNOG = new BeerDefinition(

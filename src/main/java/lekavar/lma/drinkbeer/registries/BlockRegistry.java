@@ -4,7 +4,7 @@ import lekavar.lma.drinkbeer.DrinkBeer;
 import lekavar.lma.drinkbeer.blocks.*;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraftforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
 

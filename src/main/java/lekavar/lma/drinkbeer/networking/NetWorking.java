@@ -1,29 +1,43 @@
 package lekavar.lma.drinkbeer.networking;
 
-import lekavar.lma.drinkbeer.networking.client.ServerPayloadHandler;
+import lekavar.lma.drinkbeer.DrinkBeer;
 import net.minecraft.core.BlockPos;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.handling.MainThreadPayloadHandler;
-import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
 
-public class NetWorking {
+import java.util.Optional;
 
-    public static void init(RegisterPayloadHandlersEvent event) {
-        // Sets the current network version
-        final PayloadRegistrar registrar = event.registrar("1");
-        registrar.playToServer(
-                RefreshTradeBoxPayload.TYPE,
-                RefreshTradeBoxPayload.STREAM_CODEC,
-                new MainThreadPayloadHandler<>(
-                        ServerPayloadHandler::handlePayload
-                )
+public final class NetWorking {
+    private static final String PROTOCOL_VERSION = "1";
+    private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
+            new ResourceLocation(DrinkBeer.MOD_ID, "main"),
+            () -> PROTOCOL_VERSION,
+            PROTOCOL_VERSION::equals,
+            PROTOCOL_VERSION::equals
+    );
+    private static boolean initialized;
+
+    public static synchronized void init() {
+        if (initialized) {
+            return;
+        }
+        initialized = true;
+        CHANNEL.registerMessage(
+                0,
+                RefreshTradeBoxPayload.class,
+                RefreshTradeBoxPayload::encode,
+                RefreshTradeBoxPayload::decode,
+                ServerPayloadHandler::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER)
         );
     }
 
     public static void sendRefreshTradebox(BlockPos pos) {
-        PacketDistributor.sendToServer(
-                new RefreshTradeBoxPayload(pos)
-        );
+        CHANNEL.sendToServer(new RefreshTradeBoxPayload(pos));
+    }
+
+    private NetWorking() {
     }
 }

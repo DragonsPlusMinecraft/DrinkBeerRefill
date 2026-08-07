@@ -2,7 +2,6 @@ package lekavar.lma.drinkbeer;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import net.minecraft.core.registries.BuiltInRegistries;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -18,15 +17,35 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ResourceLayoutTest {
+    private static final String MOD_ID = "drinkbeer";
     private static final Path RESOURCES = Path.of(System.getProperty("drinkbeer.projectDir"))
             .resolve(Path.of("src", "main", "resources"));
+    private static final Set<String> EXPECTED_BLOCK_IDS = Set.of(
+            "bartending_table_normal", "beer_barrel", "beer_mug", "beer_mug_apple_lambic",
+            "beer_mug_blaze_milk_stout", "beer_mug_blaze_stout", "beer_mug_frothy_pink_eggnog",
+            "beer_mug_haars_icey_pale_lager", "beer_mug_night_howl_kvass", "beer_mug_pumpkin_kvass",
+            "beer_mug_sweet_berry_kriek", "colored_lights", "empty_beer_mug", "gift_blue", "gift_green",
+            "gift_red", "gift_white", "golden_call_bell", "horse_model_1", "horse_model_2",
+            "horse_model_3", "iron_call_bell", "lekas_call_bell", "recipe_board_beer_mug",
+            "recipe_board_beer_mug_apple_lambic", "recipe_board_beer_mug_blaze_milk_stout",
+            "recipe_board_beer_mug_blaze_stout", "recipe_board_beer_mug_frothy_pink_eggnog",
+            "recipe_board_beer_mug_haars_icey_pale_lager", "recipe_board_beer_mug_night_howl_kvass",
+            "recipe_board_beer_mug_pumpkin_kvass", "recipe_board_beer_mug_sweet_berry_kriek",
+            "recipe_board_package", "side_colored_lights", "spice_amethyst_nigella_seeds",
+            "spice_blaze_paprika", "spice_citrine_nigella_seeds", "spice_dried_eglia_bud",
+            "spice_dried_selaginella", "spice_frozen_persimmon", "spice_glace_goji_berries",
+            "spice_golden_cinnamon_powder", "spice_ice_mint", "spice_ice_patchouli",
+            "spice_roasted_pecans", "spice_roasted_red_pine_nuts", "spice_silver_needle_white_tea",
+            "spice_smoked_eglia_bud", "spice_storm_shards", "star_of_bethlehem",
+            "the_great_star_of_bethlehem", "trade_box_normal"
+    );
 
     @Test
-    void blockLootTablesUseTheMinecraft121Directory() throws IOException {
-        Path obsoleteDirectory = RESOURCES.resolve(Path.of("data", DrinkBeer.MOD_ID, "loot_table", "block"));
-        Path blockLootDirectory = RESOURCES.resolve(Path.of("data", DrinkBeer.MOD_ID, "loot_table", "blocks"));
+    void blockLootTablesUseTheMinecraft1201DirectoryAndStableIds() throws IOException {
+        Path data = RESOURCES.resolve(Path.of("data", MOD_ID));
+        Path blockLootDirectory = data.resolve(Path.of("loot_tables", "blocks"));
 
-        assertFalse(Files.exists(obsoleteDirectory));
+        assertFalse(Files.exists(data.resolve("loot_table")));
         assertTrue(Files.isDirectory(blockLootDirectory));
         Set<String> lootTableNames;
         try (var files = Files.list(blockLootDirectory)) {
@@ -36,14 +55,8 @@ class ResourceLayoutTest {
                     .collect(Collectors.toSet());
         }
 
-        Set<String> blocksRequiringTables = BuiltInRegistries.BLOCK.keySet().stream()
-                .filter(id -> id.getNamespace().equals(DrinkBeer.MOD_ID))
-                .map(id -> id.getPath())
-                .filter(path -> !path.equals("mixed_beer")) // Mixed beer supplies a component-preserving dynamic drop.
-                .collect(Collectors.toSet());
-
         assertEquals(52, lootTableNames.size());
-        assertEquals(blocksRequiringTables, lootTableNames);
+        assertEquals(EXPECTED_BLOCK_IDS, lootTableNames);
     }
 
     @Test
@@ -62,16 +75,29 @@ class ResourceLayoutTest {
     }
 
     @Test
-    void bundledBrewingRecipesHaveCompleteInputsAndBalancedOutputCounts() throws IOException {
-        Path recipeDirectory = RESOURCES.resolve(Path.of("data", DrinkBeer.MOD_ID, "recipe"));
-        List<Path> brewingRecipes;
+    void bundledRecipesUseTheMinecraft1201Schema() throws IOException {
+        Path data = RESOURCES.resolve(Path.of("data", MOD_ID));
+        Path recipeDirectory = data.resolve("recipes");
+        assertFalse(Files.exists(data.resolve("recipe")));
+
+        List<Path> recipes;
         try (var paths = Files.list(recipeDirectory)) {
-            brewingRecipes = paths
-                    .filter(path -> path.getFileName().toString().startsWith("beer_mug"))
-                    .filter(path -> path.toString().endsWith(".json"))
-                    .toList();
+            recipes = paths.filter(path -> path.toString().endsWith(".json")).toList();
         }
 
+        for (Path recipePath : recipes) {
+            String source = Files.readString(recipePath);
+            assertFalse(source.contains("\"id\""), recipePath.toString());
+            assertFalse(source.contains("\"c:"), recipePath.toString());
+            try (Reader reader = Files.newBufferedReader(recipePath)) {
+                var recipe = JsonParser.parseReader(reader).getAsJsonObject();
+                assertTrue(recipe.getAsJsonObject("result").has("item"), recipePath.toString());
+            }
+        }
+
+        List<Path> brewingRecipes = recipes.stream()
+                .filter(path -> path.getFileName().toString().startsWith("beer_mug"))
+                .toList();
         assertEquals(9, brewingRecipes.size());
         for (Path recipePath : brewingRecipes) {
             try (Reader reader = Files.newBufferedReader(recipePath)) {
@@ -79,6 +105,7 @@ class ResourceLayoutTest {
                 assertEquals("drinkbeer:brewing", recipe.get("type").getAsString(), recipePath.toString());
                 assertEquals(4, recipe.getAsJsonArray("ingredients").size(), recipePath.toString());
                 assertTrue(recipe.get("brewing_time").getAsInt() > 0, recipePath.toString());
+                assertTrue(recipe.getAsJsonObject("cup").has("item"), recipePath.toString());
 
                 int cupCount = recipe.getAsJsonObject("cup").get("count").getAsInt();
                 int resultCount = recipe.getAsJsonObject("result").get("count").getAsInt();
@@ -89,8 +116,29 @@ class ResourceLayoutTest {
     }
 
     @Test
+    void dataDirectoriesAndPackMetadataMatchMinecraft1201() throws IOException {
+        Path data = RESOURCES.resolve("data");
+        assertTrue(Files.isDirectory(data.resolve(Path.of(MOD_ID, "recipes"))));
+        assertTrue(Files.isDirectory(data.resolve(Path.of(MOD_ID, "loot_tables"))));
+        assertTrue(Files.isDirectory(data.resolve(Path.of(MOD_ID, "structures"))));
+        assertTrue(Files.isDirectory(data.resolve(Path.of(MOD_ID, "tags", "items"))));
+        assertTrue(Files.isDirectory(data.resolve(Path.of("forge", "tags", "items"))));
+        assertTrue(Files.isDirectory(data.resolve(Path.of("minecraft", "tags", "items"))));
+        assertFalse(Files.exists(data.resolve("c")));
+        assertFalse(Files.exists(data.resolve(Path.of(MOD_ID, "structure"))));
+        assertFalse(Files.exists(data.resolve(Path.of(MOD_ID, "tags", "item"))));
+        assertFalse(Files.exists(RESOURCES.resolve(Path.of("META-INF", "neoforge.mods.toml"))));
+        assertFalse(Files.exists(data.resolve(Path.of(MOD_ID, "data_components"))));
+
+        try (Reader reader = Files.newBufferedReader(RESOURCES.resolve("pack.mcmeta"))) {
+            var pack = JsonParser.parseReader(reader).getAsJsonObject().getAsJsonObject("pack");
+            assertEquals(15, pack.get("pack_format").getAsInt());
+        }
+    }
+
+    @Test
     void englishAndChineseLanguageFilesExposeTheSameKeys() throws IOException {
-        Path languageDirectory = RESOURCES.resolve(Path.of("assets", DrinkBeer.MOD_ID, "lang"));
+        Path languageDirectory = RESOURCES.resolve(Path.of("assets", MOD_ID, "lang"));
         Set<String> englishKeys;
         Set<String> chineseKeys;
 
@@ -114,25 +162,25 @@ class ResourceLayoutTest {
         );
 
         for (String blockId : blockIds) {
-            assertTrue(Files.isRegularFile(RESOURCES.resolve(Path.of("assets", DrinkBeer.MOD_ID, "blockstates", blockId + ".json"))), blockId);
-            assertTrue(Files.isRegularFile(RESOURCES.resolve(Path.of("assets", DrinkBeer.MOD_ID, "models", "item", blockId + ".json"))), blockId);
-            assertTrue(Files.isRegularFile(RESOURCES.resolve(Path.of("data", DrinkBeer.MOD_ID, "loot_table", "blocks", blockId + ".json"))), blockId);
+            assertTrue(Files.isRegularFile(RESOURCES.resolve(Path.of("assets", MOD_ID, "blockstates", blockId + ".json"))), blockId);
+            assertTrue(Files.isRegularFile(RESOURCES.resolve(Path.of("assets", MOD_ID, "models", "item", blockId + ".json"))), blockId);
+            assertTrue(Files.isRegularFile(RESOURCES.resolve(Path.of("data", MOD_ID, "loot_tables", "blocks", blockId + ".json"))), blockId);
         }
 
         for (String recipe : List.of("colored_lights", "side_colored_lights", "star_of_bethlehem", "the_great_star_of_bethlehem")) {
-            assertTrue(Files.isRegularFile(RESOURCES.resolve(Path.of("data", DrinkBeer.MOD_ID, "recipe", recipe + ".json"))), recipe);
+            assertTrue(Files.isRegularFile(RESOURCES.resolve(Path.of("data", MOD_ID, "recipes", recipe + ".json"))), recipe);
         }
 
         for (String sound : List.of("gift_open_sound", "neigh1_sound", "neigh2_sound", "bell_sound")) {
-            assertTrue(Files.isRegularFile(RESOURCES.resolve(Path.of("assets", DrinkBeer.MOD_ID, "sounds", sound + ".ogg"))), sound);
+            assertTrue(Files.isRegularFile(RESOURCES.resolve(Path.of("assets", MOD_ID, "sounds", sound + ".ogg"))), sound);
         }
 
-        assertTrue(Files.isRegularFile(RESOURCES.resolve(Path.of("data", DrinkBeer.MOD_ID, "tags", "item", "beers.json"))));
+        assertTrue(Files.isRegularFile(RESOURCES.resolve(Path.of("data", MOD_ID, "tags", "items", "beers.json"))));
     }
 
     @Test
     void localClientResourceReferencesResolve() throws IOException {
-        Path assets = RESOURCES.resolve(Path.of("assets", DrinkBeer.MOD_ID));
+        Path assets = RESOURCES.resolve(Path.of("assets", MOD_ID));
         Path blockstates = assets.resolve("blockstates");
         try (var files = Files.list(blockstates)) {
             for (Path blockstate : files.filter(path -> path.toString().endsWith(".json")).toList()) {
@@ -209,7 +257,7 @@ class ResourceLayoutTest {
 
     private static void assertLocalAssetReference(Path assets, String reference, String directory,
                                                   String extension, Path source) {
-        String prefix = DrinkBeer.MOD_ID + ":";
+        String prefix = MOD_ID + ":";
         if (!reference.startsWith(prefix)) {
             return;
         }

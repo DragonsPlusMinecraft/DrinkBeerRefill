@@ -7,7 +7,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -51,21 +50,12 @@ public class GiftBlock extends Block {
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        return openGift(level, pos, player);
-    }
-
-    @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
-                                              Player player, InteractionHand hand, BlockHitResult hitResult) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+                                 InteractionHand hand, BlockHitResult hitResult) {
         if (hand != InteractionHand.MAIN_HAND) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
-        if (level.isClientSide()) {
-            return ItemInteractionResult.SUCCESS;
-        }
-        openGift(level, pos, player);
-        return ItemInteractionResult.CONSUME;
+        return openGift(level, pos, player);
     }
 
     private InteractionResult openGift(Level level, BlockPos pos, Player player) {

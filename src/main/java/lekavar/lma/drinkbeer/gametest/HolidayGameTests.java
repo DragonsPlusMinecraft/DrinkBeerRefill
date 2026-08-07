@@ -14,12 +14,11 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.util.List;
 import java.util.Set;
@@ -38,7 +37,7 @@ public final class HolidayGameTests {
     @GameTest(template = "empty", timeoutTicks = 40)
     public static void giftOpensOnTheServerExactlyOnce(GameTestHelper helper) {
         helper.setBlock(TEST_POS, BlockRegistry.GIFT_RED.get());
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Player player = helper.makeMockPlayer();
 
         helper.useBlock(TEST_POS, player);
 
@@ -49,11 +48,11 @@ public final class HolidayGameTests {
 
     @GameTest(template = "empty", timeoutTicks = 40)
     public static void ordinaryAndMixedEggnogEachGiveOneColoredGift(GameTestHelper helper) {
-        Player ordinaryPlayer = helper.makeMockPlayer(GameType.SURVIVAL);
+        Player ordinaryPlayer = helper.makeMockPlayer();
         ItemStack ordinaryEggnog = new ItemStack(ItemRegistry.BEER_MUG_FROTHY_PINK_EGGNOG.get());
         ordinaryEggnog.finishUsingItem(helper.getLevel(), ordinaryPlayer);
 
-        Player mixedPlayer = helper.makeMockPlayer(GameType.SURVIVAL);
+        Player mixedPlayer = helper.makeMockPlayer();
         ItemStack mixedEggnog = MixedBeerManager.genMixedBeerItemStack(8, List.of());
         mixedEggnog.finishUsingItem(helper.getLevel(), mixedPlayer);
 
@@ -76,7 +75,7 @@ public final class HolidayGameTests {
         helper.assertTrue(helper.getBlockState(TEST_POS.above()).getValue(DoublePlantBlock.HALF) == DoubleBlockHalf.UPPER,
                 "The upper horse half must use half=upper");
 
-        helper.getLevel().destroyBlock(helper.absolutePos(TEST_POS.above()), true, helper.makeMockPlayer(GameType.SURVIVAL));
+        helper.getLevel().destroyBlock(helper.absolutePos(TEST_POS.above()), true, helper.makeMockPlayer());
         helper.runAfterDelay(1, () -> {
             helper.assertBlockPresent(Blocks.AIR, TEST_POS);
             helper.assertBlockPresent(Blocks.AIR, TEST_POS.above());
@@ -108,16 +107,16 @@ public final class HolidayGameTests {
 
     @GameTest(template = "empty", timeoutTicks = 40)
     public static void ordinaryAndMixedHaarsEachAddTwoDrunkStages(GameTestHelper helper) {
-        Player ordinaryPlayer = helper.makeMockPlayer(GameType.SURVIVAL);
+        Player ordinaryPlayer = helper.makeMockPlayer();
         new ItemStack(ItemRegistry.BEER_MUG_HAARS_ICEY_PALE_LAGER.get())
                 .finishUsingItem(helper.getLevel(), ordinaryPlayer);
 
-        Player mixedPlayer = helper.makeMockPlayer(GameType.SURVIVAL);
+        Player mixedPlayer = helper.makeMockPlayer();
         MixedBeerManager.genMixedBeerItemStack(6, List.of())
                 .finishUsingItem(helper.getLevel(), mixedPlayer);
 
-        var ordinaryDrunk = ordinaryPlayer.getEffect(MobEffectRegistry.DRUNK);
-        var mixedDrunk = mixedPlayer.getEffect(MobEffectRegistry.DRUNK);
+        var ordinaryDrunk = ordinaryPlayer.getEffect(MobEffectRegistry.DRUNK.get());
+        var mixedDrunk = mixedPlayer.getEffect(MobEffectRegistry.DRUNK.get());
         helper.assertTrue(ordinaryDrunk != null && ordinaryDrunk.getAmplifier() == 1,
                 "Ordinary Haar's must advance intoxication by two stages");
         helper.assertTrue(mixedDrunk != null && mixedDrunk.getAmplifier() == 1,

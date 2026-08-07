@@ -1,0 +1,26 @@
+{
+  "type": "drinkbeer:brewing",
+  "ingredients": [
+    {
+      "item": "minecraft:bread"
+    },
+    {
+      "item": "minecraft:bread"
+    },
+    {
+      "item": "minecraft:pumpkin"
+    },
+    {
+      "item": "minecraft:water_bucket"
+    }
+  ],
+  "cup": {
+    "item": "drinkbeer:empty_beer_mug",
+    "count": 4
+  },
+  "brewing_time": 12000,
+  "result": {
+    "item": "drinkbeer:beer_mug_pumpkin_kvass",
+    "count": 4
+  }
+}

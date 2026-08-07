@@ -2,9 +2,8 @@ package lekavar.lma.drinkbeer.items;
 
 import lekavar.lma.drinkbeer.managers.MixedBeerManager;
 import lekavar.lma.drinkbeer.managers.SpiceAndFlavorManager;
-import lekavar.lma.drinkbeer.registries.DataComponentTypeRegistry;
+import lekavar.lma.drinkbeer.blockentities.MixedBeerBlockEntity;
 import lekavar.lma.drinkbeer.utils.beer.Beers;
-import lekavar.lma.drinkbeer.utils.dataComponent.SpiceData;
 import lekavar.lma.drinkbeer.utils.mixedbeer.Flavors;
 import lekavar.lma.drinkbeer.utils.mixedbeer.Spices;
 import net.minecraft.ChatFormatting;
@@ -20,15 +19,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Locale;
 
 public class MixedBeerBlockItem extends BeerBlockItem {
     public MixedBeerBlockItem(Block block) {
         super(block, new Item.Properties().stacksTo(1)
-                .food(new FoodProperties.Builder().alwaysEdible().build())
-                .component(DataComponentTypeRegistry.BEER_ID_COMPONENT, 1)
-                .component(DataComponentTypeRegistry.SPICE_COMPONENT, new SpiceData(Spices.EMPTY_SPICE_ID,Spices.EMPTY_SPICE_ID,Spices.EMPTY_SPICE_ID)));
+                .food(new FoodProperties.Builder().alwaysEat().build()));
     }
 
     public void appendMixedBeerTooltip(ItemStack stack, List<Component> tooltip) {
@@ -51,11 +49,11 @@ public class MixedBeerBlockItem extends BeerBlockItem {
         }
         //Base food level
         if (beerId > Beers.EMPTY_BEER_ID) {
-            FoodProperties foodProperties = beerItem.getFoodProperties(stack, null);
-            String hunger = Integer.toString(foodProperties.nutrition());
+            FoodProperties foodProperties = beerItem.getFoodProperties();
+            String hunger = Integer.toString(foodProperties.getNutrition());
             tooltip.add(Component.translatable("drinkbeer.restores_hunger").setStyle(Style.EMPTY.applyFormat(ChatFormatting.BLUE)).append(hunger));
             tooltip.add(Component.translatable("drinkbeer.restores_saturation").setStyle(Style.EMPTY.applyFormat(ChatFormatting.BLUE))
-                    .append(String.format(Locale.ROOT, "%.1f", foodProperties.saturation())));
+                    .append(String.format(Locale.ROOT, "%.1f", foodProperties.getSaturationModifier())));
         }
 
         //Flavor title
@@ -100,24 +98,27 @@ public class MixedBeerBlockItem extends BeerBlockItem {
 
     @Override
     protected boolean placeBlock(BlockPlaceContext context, BlockState state) {
-        if (super.placeBlock(context, state)) {
-            return true;
+        if (!super.placeBlock(context, state)) {
+            return false;
         }
-        return false;
+        if (!context.getLevel().isClientSide()
+                && context.getLevel().getBlockEntity(context.getClickedPos()) instanceof MixedBeerBlockEntity blockEntity) {
+            ItemStack stack = context.getItemInHand();
+            blockEntity.setMixedBeerData(MixedBeerManager.getBeerId(stack), MixedBeerManager.getSpiceList(stack));
+        }
+        return true;
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        appendMixedBeerTooltip(stack, tooltipComponents);
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        if (level != null && level.isClientSide()) {
+            appendMixedBeerTooltip(stack, tooltipComponents);
+        }
     }
 
     @Override
     protected boolean canPlace(BlockPlaceContext context, BlockState state) {
-        if (context.getClickLocation().distanceTo(context.getPlayer().position()) > MAX_PLACE_DISTANCE)
-            return false;
-        else {
-            return super.canPlace(context, state);
-        }
+        return isWithinPlaceDistance(context) && super.canPlace(context, state);
     }
 
     public static int getBeerId(ItemStack itemStack) {

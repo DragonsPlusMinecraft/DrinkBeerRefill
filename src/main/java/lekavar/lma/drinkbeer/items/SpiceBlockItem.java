@@ -12,6 +12,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
 import javax.annotation.Nullable;
@@ -21,14 +22,14 @@ public class SpiceBlockItem extends BlockItem {
     public SpiceBlockItem(Block block, @Nullable MobEffectInstance statusEffectInstance, int hunger) {
         super(block, new Item.Properties().stacksTo(64)
                 .food(statusEffectInstance != null
-                        ? new FoodProperties.Builder().nutrition(hunger).effect(() -> statusEffectInstance, 1).alwaysEdible().build()
-                        : new FoodProperties.Builder().nutrition(hunger).alwaysEdible().build())
+                        ? new FoodProperties.Builder().nutrition(hunger).effect(statusEffectInstance, 1).alwaysEat().build()
+                        : new FoodProperties.Builder().nutrition(hunger).alwaysEat().build())
         );
     }
 
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         //Spice title
         tooltipComponents.add(Component.translatable(SpiceAndFlavorManager.getSpiceToolTipTranslationKey()).setStyle(Style.EMPTY.applyFormat(ChatFormatting.YELLOW)));
         //Flavor title

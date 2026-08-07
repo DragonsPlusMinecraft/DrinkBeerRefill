@@ -4,11 +4,11 @@ DrinkBeer Refill is a community revival of **Drink Beer**, bringing placeable dr
 
 The current revival release targets:
 
-- Minecraft 1.21.1
-- NeoForge 21.1.244 or newer
-- Java 21
+- Minecraft 1.20.1
+- NeoForge 47.1.106
+- Java 17
 
-The `1.4.0-beta.1` line restores the authorized upstream 4.0 holiday content and beer values on top of the repaired 1.21.1 gameplay, mixed-beer migration, safe automation, and regression-test baseline.
+The `1.4.0-beta.1` line restores the authorized upstream 4.0 holiday content and beer values on top of the repaired gameplay, mixed-beer migration, safe automation, and regression-test baseline. This branch is a single-module 1.20.1 NeoForge backport; it is not a multiloader build.
 
 ## Using the core blocks
 
@@ -37,7 +37,11 @@ Automation faces:
 
 ### Placeable beer
 
-Placed beer can be recovered either by breaking it or by using an empty hand. Mixed-beer base and spice data are preserved in both cases, including items migrated from the legacy `BlockEntityTag/MixedBeer` format.
+Placed beer can be recovered either by breaking it or by using an empty hand. Mixed-beer base and spice data are preserved in both cases, including items migrated from legacy root-level layouts. New items use `BlockEntityTag.MixedBeer` with `beerId` and `spiceList`.
+
+## Save compatibility
+
+Migration support targets worlds and items created by earlier Minecraft 1.20.1 releases of DrinkBeer Refill. Legacy mixed-beer, bartending-table, keg, and TradeBox layouts are normalized in memory and written back in the canonical format on the next server save. Downgrading and opening an entire Minecraft 1.21.1 world in 1.20.1 is not supported.
 
 ## Server configuration
 
@@ -53,13 +57,13 @@ JEI integration displays brewing recipes and required brewing time. The mod itse
 
 ## Development
 
-Build and run the regression suite with Java 21:
+Build and run the regression suite with Java 17:
 
 ```text
-./gradlew build
+./gradlew build runGameTestServer --stacktrace
 ```
 
-The test task starts through NeoForge's JUnit integration, so tests can reference Minecraft and NeoForge classes safely. CI runs the same build on every push and pull request.
+The regular `test` task contains logic and resource-layout tests that do not require a loaded mod registry. Registry, world, NBT migration, automation, and gameplay coverage runs through Forge GameTest. CI runs both suites and verifies the packaged 1.20.1 JAR layout on every push and pull request.
 
 ## Authors and license
 

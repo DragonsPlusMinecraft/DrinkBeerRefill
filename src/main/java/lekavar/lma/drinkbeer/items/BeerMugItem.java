@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class BeerMugItem extends BeerBlockItem {
-    private final static double MAX_PLACE_DISTANCE = 2.0D;
     /**
      * @deprecated Use {@link DrinkBeerConfig#beerSaturationModifier()} so the server configuration is respected.
      */
@@ -80,24 +79,20 @@ public class BeerMugItem extends BeerBlockItem {
 
     @Override
     protected boolean canPlace(BlockPlaceContext context, BlockState state) {
-        if ((context.getClickLocation().distanceTo(context.getPlayer().position()) > MAX_PLACE_DISTANCE))
-            return false;
-        else {
-            return super.canPlace(context, state);
-        }
+        return isWithinPlaceDistance(context) && super.canPlace(context, state);
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         String name = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
         if (hasEffectNoticeTooltip()) {
             tooltipComponents.add(Component.translatable("item.drinkbeer." + name + ".tooltip").setStyle(Style.EMPTY.applyFormat(ChatFormatting.BLUE)));
         }
         FoodProperties foodProperties = stack.getItem().getFoodProperties(stack, null);
-        String hunger = String.valueOf(foodProperties.nutrition());
+        String hunger = String.valueOf(foodProperties.getNutrition());
         tooltipComponents.add(Component.translatable("drinkbeer.restores_hunger").setStyle(Style.EMPTY.applyFormat(ChatFormatting.BLUE)).append(hunger));
         tooltipComponents.add(Component.translatable("drinkbeer.restores_saturation").setStyle(Style.EMPTY.applyFormat(ChatFormatting.BLUE))
-                .append(String.format(java.util.Locale.ROOT, "%.1f", foodProperties.saturation())));
+                .append(String.format(java.util.Locale.ROOT, "%.1f", foodProperties.getSaturationModifier())));
     }
 
     private boolean hasEffectNoticeTooltip() {

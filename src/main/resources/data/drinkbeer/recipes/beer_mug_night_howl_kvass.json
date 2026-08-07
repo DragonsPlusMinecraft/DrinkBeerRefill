@@ -1,0 +1,26 @@
+{
+  "type": "drinkbeer:brewing",
+  "ingredients": [
+    {
+      "item": "minecraft:bread"
+    },
+    {
+      "item": "minecraft:bread"
+    },
+    {
+      "item": "minecraft:bone"
+    },
+    {
+      "item": "minecraft:water_bucket"
+    }
+  ],
+  "cup": {
+    "item": "drinkbeer:empty_beer_mug",
+    "count": 4
+  },
+  "brewing_time": 18000,
+  "result": {
+    "item": "drinkbeer:beer_mug_night_howl_kvass",
+    "count": 4
+  }
+}

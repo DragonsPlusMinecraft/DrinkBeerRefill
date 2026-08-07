@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "XYZ",
+    " W "
+  ],
+  "key": {
+    "W": { "item": "minecraft:lantern" },
+    "X": { "item": "minecraft:red_dye" },
+    "Y": { "item": "minecraft:yellow_dye" },
+    "Z": { "item": "minecraft:blue_dye" }
+  },
+  "result": {
+    "item": "drinkbeer:colored_lights",
+    "count": 3
+  }
+}

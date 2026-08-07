@@ -28,7 +28,7 @@ public class NightHowlStatusEffect {
     }
 
     public static Pair<MobEffect, Integer> getStatusEffectPair(Level world) {
-        return Pair.of(MobEffects.NIGHT_VISION.value(), getNightVisionTime(getMoonPhase(world)));
+        return Pair.of(MobEffects.NIGHT_VISION, getNightVisionTime(getMoonPhase(world)));
     }
 
     public static void playRandomHowlSound(Level world, LivingEntity user) {

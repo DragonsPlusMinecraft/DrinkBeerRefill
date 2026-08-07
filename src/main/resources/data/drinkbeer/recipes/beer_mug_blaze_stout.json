@@ -1,0 +1,36 @@
+{
+  "type": "drinkbeer:brewing",
+  "ingredients": [
+    [
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "tag": "forge:crops/wheat"
+      }
+    ],
+    [
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "tag": "forge:crops/wheat"
+      }
+    ],
+    {
+      "item": "minecraft:blaze_powder"
+    },
+    {
+      "item": "minecraft:water_bucket"
+    }
+  ],
+  "cup": {
+    "item": "drinkbeer:empty_beer_mug",
+    "count": 4
+  },
+  "brewing_time": 12000,
+  "result": {
+    "item": "drinkbeer:beer_mug_blaze_stout",
+    "count": 4
+  }
+}

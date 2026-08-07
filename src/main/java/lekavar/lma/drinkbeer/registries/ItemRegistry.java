@@ -8,7 +8,7 @@ import lekavar.lma.drinkbeer.utils.beer.BeerDefinitions;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraftforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
 

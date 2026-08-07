@@ -1,12 +1,13 @@
 package lekavar.lma.drinkbeer.blocks;
 
-import com.mojang.serialization.MapCodec;
 import lekavar.lma.drinkbeer.blockentities.BeerBarrelBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -27,11 +28,11 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 
 public class BeerBarrelBlock extends BaseEntityBlock {
-    public static final MapCodec<BeerBarrelBlock> CODEC = simpleCodec(pro->new BeerBarrelBlock());
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     protected static final VoxelShape SHAPE = Block.box(1, 0, 1, 15, 15, 15);
 
@@ -78,18 +79,13 @@ public class BeerBarrelBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
-
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
+    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (!world.isClientSide) {
             world.playSound(null, pos, SoundEvents.BARREL_OPEN, SoundSource.BLOCKS, 1f, 1f);
 
             BlockEntity blockentity = world.getBlockEntity(pos);
-            if (blockentity instanceof BeerBarrelBlockEntity) {
-                player.openMenu((BeerBarrelBlockEntity) blockentity, buf -> buf.writeBlockPos(blockentity.getBlockPos()));
+            if (blockentity instanceof BeerBarrelBlockEntity beerBarrel && player instanceof ServerPlayer serverPlayer) {
+                NetworkHooks.openScreen(serverPlayer, beerBarrel, beerBarrel.getBlockPos());
             }
             return InteractionResult.CONSUME;
 
@@ -98,7 +94,7 @@ public class BeerBarrelBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof BeerBarrelBlockEntity blockEntity) {
             Containers.dropContents(level, pos, blockEntity.getBrewingInventory());
             level.updateNeighbourForOutputSignal(pos, this);
