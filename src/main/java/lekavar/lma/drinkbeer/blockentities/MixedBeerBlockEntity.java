@@ -2,12 +2,20 @@ package lekavar.lma.drinkbeer.blockentities;
 
 import lekavar.lma.drinkbeer.managers.MixedBeerManager;
 import lekavar.lma.drinkbeer.registries.BlockEntityRegistry;
+import lekavar.lma.drinkbeer.registries.DataComponentTypeRegistry;
+import lekavar.lma.drinkbeer.utils.beer.Beers;
+import lekavar.lma.drinkbeer.utils.dataComponent.SpiceData;
+import lekavar.lma.drinkbeer.utils.mixedbeer.Spices;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -17,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MixedBeerBlockEntity extends BlockEntity {
-    private int beerId;
+    private int beerId = Beers.EMPTY_BEER_ID;
     private List<Integer> spiceList = new ArrayList<>();
 
     public MixedBeerBlockEntity(BlockPos pos, BlockState state) {
@@ -26,9 +34,8 @@ public class MixedBeerBlockEntity extends BlockEntity {
 
     public MixedBeerBlockEntity(BlockPos pos, BlockState state, int beerId, List<Integer> spiceList) {
         super(BlockEntityRegistry.MIXED_BEER_TILEENTITY.get(), pos, state);
-        this.beerId = beerId;
-        this.spiceList.clear();
-        this.spiceList.addAll(spiceList);
+        this.beerId = MixedBeerManager.sanitizeBeerId(beerId);
+        this.spiceList = new ArrayList<>(MixedBeerManager.sanitizeSpiceIds(spiceList));
     }
 
     /**
@@ -49,12 +56,55 @@ public class MixedBeerBlockEntity extends BlockEntity {
     public void loadAdditional(@Nonnull CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag,registries);
 
-        CompoundTag descriptorTag = tag.getCompound("MixedBeer");
-        this.beerId = descriptorTag.getShort("beerId");
-        this.spiceList.clear();
-        for (int spice : descriptorTag.getIntArray("spiceList")) {
-            this.spiceList.add(spice);
+        if (tag.contains("MixedBeer", Tag.TAG_COMPOUND)) {
+            CompoundTag descriptorTag = tag.getCompound("MixedBeer");
+            this.beerId = MixedBeerManager.sanitizeBeerId(descriptorTag.getInt("beerId"));
+            this.spiceList = new ArrayList<>(MixedBeerManager.sanitizeSpiceIds(
+                    java.util.Arrays.stream(descriptorTag.getIntArray("spiceList")).boxed().toList()
+            ));
         }
+    }
+
+    @Override
+    protected void applyImplicitComponents(DataComponentInput componentInput) {
+        super.applyImplicitComponents(componentInput);
+
+        // Minecraft converts old BlockEntityTag data into BLOCK_ENTITY_DATA. BlockItem first loads that NBT and
+        // then applies item components, whose prototype defaults would otherwise overwrite the migrated values.
+        CustomData legacyData = componentInput.get(DataComponents.BLOCK_ENTITY_DATA);
+        if (legacyData != null) {
+            CompoundTag descriptorTag = MixedBeerManager.findLegacyDescriptor(legacyData.copyTag());
+            if (descriptorTag != null) {
+                this.beerId = MixedBeerManager.sanitizeBeerId(descriptorTag.getInt("beerId"));
+                this.spiceList = new ArrayList<>(MixedBeerManager.sanitizeSpiceIds(
+                        java.util.Arrays.stream(descriptorTag.getIntArray("spiceList")).boxed().toList()
+                ));
+                return;
+            }
+        }
+
+        this.beerId = MixedBeerManager.sanitizeBeerId(
+                componentInput.getOrDefault(DataComponentTypeRegistry.BEER_ID_COMPONENT, Beers.DEFAULT_BEER_ID)
+        );
+        SpiceData spiceData = componentInput.getOrDefault(
+                DataComponentTypeRegistry.SPICE_COMPONENT,
+                new SpiceData(Spices.EMPTY_SPICE_ID, Spices.EMPTY_SPICE_ID, Spices.EMPTY_SPICE_ID)
+        );
+        this.spiceList = new ArrayList<>(MixedBeerManager.sanitizeSpiceIds(spiceData.toSpiceList()));
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder components) {
+        super.collectImplicitComponents(components);
+        components.set(DataComponentTypeRegistry.BEER_ID_COMPONENT.get(), this.beerId);
+        components.set(DataComponentTypeRegistry.SPICE_COMPONENT.get(), SpiceData.fromSpiceList(this.spiceList));
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void removeComponentsFromTag(CompoundTag tag) {
+        super.removeComponentsFromTag(tag);
+        tag.remove("MixedBeer");
     }
 
     @Override
@@ -71,13 +121,11 @@ public class MixedBeerBlockEntity extends BlockEntity {
     }
 
     public ItemStack getPickStack() {
-        //Generate mixed beer item stack for dropping
-        ItemStack resultStack = MixedBeerManager.genMixedBeerItemStack(this.beerId, this.spiceList);
-        return resultStack;
+        return MixedBeerManager.genMixedBeerItemStack(this.beerId, this.spiceList);
     }
 
     public List<Integer> getSpiceList() {
-        return spiceList;
+        return List.copyOf(spiceList);
     }
 
     public int getBeerId() {

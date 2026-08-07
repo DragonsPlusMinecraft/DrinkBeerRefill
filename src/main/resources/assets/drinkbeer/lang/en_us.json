@@ -1,4 +1,15 @@
 {
+  "block.drinkbeer.gift_red": "Red Gift",
+  "block.drinkbeer.gift_blue": "Blue Gift",
+  "block.drinkbeer.gift_green": "Green Gift",
+  "block.drinkbeer.gift_white": "White Gift",
+  "block.drinkbeer.colored_lights": "Colored Lights",
+  "block.drinkbeer.side_colored_lights": "Side Colored Lights",
+  "block.drinkbeer.star_of_bethlehem": "Star of Bethlehem",
+  "block.drinkbeer.the_great_star_of_bethlehem": "Great Star of Bethlehem",
+  "block.drinkbeer.horse_model_1": "Horse Model",
+  "block.drinkbeer.horse_model_2": "Horse Model",
+  "block.drinkbeer.horse_model_3": "Holiday Horse Model",
   "itemGroup.drinkbeer.beer": "Beer",
   "itemGroup.drinkbeer.general": "DrinkBeer General Blocks",
 
@@ -42,6 +53,7 @@
   "item.drinkbeer.beer_mug_frothy_pink_eggnog.tooltip": "Absorption 2:00",
 
   "drinkbeer.restores_hunger": "Restores Hunger: ",
+  "drinkbeer.restores_saturation": "Restores Saturation: ",
   "effect.drinkbeer.drunk_frost_walker": "Drunk Frost Walker",
   "effect.drinkbeer.drunk": "Drunk",
 
@@ -118,5 +130,12 @@
 
   "config.jade.plugin_drinkbeer.beer_barrel": "Beer Barrel",
   "config.jade.plugin_drinkbeer.trade_box": "Trade Box",
-  "config.jade.plugin_drinkbeer.mixed_beer": "Mixed Beer"
+  "config.jade.plugin_drinkbeer.mixed_beer": "Mixed Beer",
+
+  "message.drinkbeer.bartending_table.drawer_closed": "Open the drawer before adding spices.",
+  "message.drinkbeer.bartending_table.use_drawer": "Add spices through the open drawer.",
+  "message.drinkbeer.bartending_table.occupied": "There is already a beer on the table.",
+  "message.drinkbeer.bartending_table.no_beer": "Place a beer on the table first.",
+  "message.drinkbeer.bartending_table.spice_full": "This beer already has three spices.",
+  "message.drinkbeer.bartending_table.invalid_item": "That item cannot be used on the bartending table."
 }

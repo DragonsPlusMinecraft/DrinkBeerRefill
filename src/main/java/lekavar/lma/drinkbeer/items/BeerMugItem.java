@@ -1,7 +1,10 @@
 package lekavar.lma.drinkbeer.items;
 
+import lekavar.lma.drinkbeer.DrinkBeerConfig;
 import lekavar.lma.drinkbeer.effects.DrunkStatusEffect;
-import lekavar.lma.drinkbeer.effects.NightHowlStatusEffect;
+import lekavar.lma.drinkbeer.utils.beer.BeerConsumptionEffects;
+import lekavar.lma.drinkbeer.utils.beer.BeerDefinition;
+import lekavar.lma.drinkbeer.utils.beer.BeerSpecialAction;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -23,28 +26,56 @@ import java.util.function.Supplier;
 
 public class BeerMugItem extends BeerBlockItem {
     private final static double MAX_PLACE_DISTANCE = 2.0D;
+    /**
+     * @deprecated Use {@link DrinkBeerConfig#beerSaturationModifier()} so the server configuration is respected.
+     */
+    @Deprecated(forRemoval = false)
+    public static final float SATURATION_MODIFIER = (float) DrinkBeerConfig.DEFAULT_BEER_SATURATION_MODIFIER;
+    private final BeerDefinition definition;
     private final boolean hasExtraTooltip;
 
+    public BeerMugItem(Block block, BeerDefinition definition) {
+        super(block, new Item.Properties().stacksTo(16)
+                .food(definition.foodProperties((float) DrinkBeerConfig.DEFAULT_BEER_SATURATION_MODIFIER)));
+        this.definition = definition;
+        this.hasExtraTooltip = definition.hasEffectTooltip();
+    }
+
+    /**
+     * @deprecated Registered beers use centralized {@link BeerDefinition} instances.
+     */
+    @Deprecated(forRemoval = false)
     public BeerMugItem(Block block, int nutrition, boolean hasExtraTooltip) {
-        super(block, new Item.Properties().stacksTo(16)
-                .food(new FoodProperties.Builder().nutrition(nutrition).alwaysEdible().build()));
-        this.hasExtraTooltip = hasExtraTooltip;
+        this(block, new BeerDefinition(1, nutrition, null, hasExtraTooltip, BeerSpecialAction.NONE));
     }
 
+    /**
+     * @deprecated Registered beers use centralized {@link BeerDefinition} instances.
+     */
+    @Deprecated(forRemoval = false)
     public BeerMugItem(Block block, @Nullable MobEffectInstance statusEffectInstance, int nutrition, boolean hasExtraTooltip) {
-        super(block, new Item.Properties().stacksTo(16)
-                .food(statusEffectInstance != null
-                        ? new FoodProperties.Builder().nutrition(nutrition).effect(statusEffectInstance, 1).alwaysEdible().build()
-                        : new FoodProperties.Builder().nutrition(nutrition).alwaysEdible().build()));
-        this.hasExtraTooltip = hasExtraTooltip;
+        this(block, new BeerDefinition(1, nutrition,
+                statusEffectInstance == null ? null : () -> statusEffectInstance,
+                hasExtraTooltip, BeerSpecialAction.NONE));
     }
 
+    /**
+     * @deprecated Registered beers use centralized {@link BeerDefinition} instances.
+     */
+    @Deprecated(forRemoval = false)
     public BeerMugItem(Block block, Supplier<MobEffectInstance> statusEffectInstance, int nutrition, boolean hasExtraTooltip) {
-        super(block, new Item.Properties().stacksTo(16)
-                .food(statusEffectInstance != null
-                        ? new FoodProperties.Builder().nutrition(nutrition).effect(statusEffectInstance, 1).alwaysEdible().build()
-                        : new FoodProperties.Builder().nutrition(nutrition).alwaysEdible().build()));
-        this.hasExtraTooltip = hasExtraTooltip;
+        this(block, new BeerDefinition(1, nutrition, statusEffectInstance,
+                hasExtraTooltip, BeerSpecialAction.NONE));
+    }
+
+    @Nullable
+    @Override
+    public FoodProperties getFoodProperties(ItemStack stack, @Nullable LivingEntity entity) {
+        return definition.foodProperties(DrinkBeerConfig.beerSaturationModifier());
+    }
+
+    public BeerDefinition getDefinition() {
+        return definition;
     }
 
     @Override
@@ -62,8 +93,11 @@ public class BeerMugItem extends BeerBlockItem {
         if (hasEffectNoticeTooltip()) {
             tooltipComponents.add(Component.translatable("item.drinkbeer." + name + ".tooltip").setStyle(Style.EMPTY.applyFormat(ChatFormatting.BLUE)));
         }
-        String hunger = String.valueOf(stack.getItem().getFoodProperties(stack,null).nutrition());
+        FoodProperties foodProperties = stack.getItem().getFoodProperties(stack, null);
+        String hunger = String.valueOf(foodProperties.nutrition());
         tooltipComponents.add(Component.translatable("drinkbeer.restores_hunger").setStyle(Style.EMPTY.applyFormat(ChatFormatting.BLUE)).append(hunger));
+        tooltipComponents.add(Component.translatable("drinkbeer.restores_saturation").setStyle(Style.EMPTY.applyFormat(ChatFormatting.BLUE))
+                .append(String.format(java.util.Locale.ROOT, "%.1f", foodProperties.saturation())));
     }
 
     private boolean hasEffectNoticeTooltip() {
@@ -72,13 +106,15 @@ public class BeerMugItem extends BeerBlockItem {
 
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
-        //Give Drunk status effect
-        DrunkStatusEffect.addStatusEffect(user);
-        //Give Night Vision status effect if drank Night Howl Kvass
-        NightHowlStatusEffect.addStatusEffect(stack, world, user);
-        //Give empty mug back
-        giveEmptyMugBack(user);
+        ItemStack result = super.finishUsingItem(stack, world, user);
+        if (!world.isClientSide()) {
+            // Give Drunk status effect.
+            DrunkStatusEffect.addStatusEffect(user);
+            BeerConsumptionEffects.finishStandardDrink(definition, world, user);
+            // Inventory mutations belong on the logical server to avoid client-side ghost mugs.
+            giveEmptyMugBack(user);
+        }
 
-        return super.finishUsingItem(stack, world, user);
+        return result;
     }
 }

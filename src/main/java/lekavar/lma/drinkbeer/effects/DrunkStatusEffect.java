@@ -1,6 +1,7 @@
 package lekavar.lma.drinkbeer.effects;
 
 import lekavar.lma.drinkbeer.registries.MobEffectRegistry;
+import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -13,11 +14,11 @@ public class DrunkStatusEffect extends MobEffect {
     public final static int MAX_DRUNK_AMPLIFIER = 4;
     public final static int MIN_DRUNK_AMPLIFIER = 0;
     private final static int BASE_DURATION = 1200;
-    private final static boolean visible = false;
-    private static final int[] drunkDurations = {3600, 3000, 2400, 1800, 1200};
-    private static final int[] nauseaDurations = {160, 160, 200, 300, 600};
-    private static final int[] slownessDurations = {0, 80, 160, 200, 600};
-    private static final int[] harmulStatusEffectsIntervals = {200, 160, 200, 300, 20};
+    private static final boolean VISIBLE = false;
+    private static final int[] DRUNK_DURATIONS = {3600, 3000, 2400, 1800, 1200};
+    private static final int[] NAUSEA_DURATIONS = {160, 160, 200, 300, 600};
+    private static final int[] SLOWNESS_DURATIONS = {0, 80, 160, 200, 600};
+    private static final int[] HARMFUL_STATUS_EFFECT_INTERVALS = {200, 160, 200, 300, 20};
 
     public DrunkStatusEffect() {
         super(MobEffectCategory.HARMFUL, new Color(255, 222, 173, 255).getRGB());
@@ -30,26 +31,27 @@ public class DrunkStatusEffect extends MobEffect {
         }
 
         MobEffectInstance statusEffectInstance = user.getEffect(MobEffectRegistry.DRUNK);
-        int currentDrunkAmplifier = statusEffectInstance == null ? -1 : statusEffectInstance.getAmplifier();
-        int newDrunkAmplifier = currentDrunkAmplifier + value;
-        newDrunkAmplifier = Math.min(newDrunkAmplifier, MAX_DRUNK_AMPLIFIER);
+        int currentDrunkAmplifier = statusEffectInstance == null
+                ? MIN_DRUNK_AMPLIFIER - 1
+                : Mth.clamp(statusEffectInstance.getAmplifier(), MIN_DRUNK_AMPLIFIER, MAX_DRUNK_AMPLIFIER);
+        long requestedAmplifier = (long) currentDrunkAmplifier + value;
+        int newDrunkAmplifier = (int) Math.max(
+                MIN_DRUNK_AMPLIFIER - 1L,
+                Math.min(MAX_DRUNK_AMPLIFIER, requestedAmplifier)
+        );
 
         if (currentDrunkAmplifier < MIN_DRUNK_AMPLIFIER && newDrunkAmplifier < MIN_DRUNK_AMPLIFIER) {
             return;
         } else if (currentDrunkAmplifier >= MIN_DRUNK_AMPLIFIER && newDrunkAmplifier < MIN_DRUNK_AMPLIFIER) {
             user.removeEffect(MobEffectRegistry.DRUNK);
         } else if (currentDrunkAmplifier < MIN_DRUNK_AMPLIFIER) {
-            user.addEffect(new MobEffectInstance(MobEffectRegistry.DRUNK, DrunkStatusEffect.getDrunkDuratioin(newDrunkAmplifier), newDrunkAmplifier));
+            user.addEffect(new MobEffectInstance(MobEffectRegistry.DRUNK, getDrunkDuration(newDrunkAmplifier), newDrunkAmplifier));
         } else {
             if (newDrunkAmplifier > currentDrunkAmplifier) {
-                user.addEffect(new MobEffectInstance(MobEffectRegistry.DRUNK, DrunkStatusEffect.getDrunkDuratioin(newDrunkAmplifier), newDrunkAmplifier));
+                user.addEffect(new MobEffectInstance(MobEffectRegistry.DRUNK, getDrunkDuration(newDrunkAmplifier), newDrunkAmplifier));
             } else if (newDrunkAmplifier < currentDrunkAmplifier) {
-                int tempDrunkAmplifier = currentDrunkAmplifier - newDrunkAmplifier;
-                while (tempDrunkAmplifier > 0) {
-                    decreaseDrunkStatusEffefct(user, currentDrunkAmplifier);
-                    currentDrunkAmplifier--;
-                    tempDrunkAmplifier--;
-                }
+                user.removeEffect(MobEffectRegistry.DRUNK);
+                user.addEffect(new MobEffectInstance(MobEffectRegistry.DRUNK, getDrunkDuration(newDrunkAmplifier), newDrunkAmplifier));
             }
         }
     }
@@ -60,12 +62,17 @@ public class DrunkStatusEffect extends MobEffect {
 
     @Override
     public boolean applyEffectTick(LivingEntity entity, int amplifier) {
-        int time = entity.getEffect(MobEffectRegistry.DRUNK).getDuration();
+        MobEffectInstance currentEffect = entity.getEffect(MobEffectRegistry.DRUNK);
+        if (currentEffect == null) {
+            return false;
+        }
+        int safeAmplifier = Mth.clamp(amplifier, MIN_DRUNK_AMPLIFIER, MAX_DRUNK_AMPLIFIER);
+        int time = currentEffect.getDuration();
         //Always give harmful status effects
-        giveHarmfulStatusEffects(entity, amplifier, time);
+        giveHarmfulStatusEffects(entity, safeAmplifier, time);
         //Give next lower Drunk status effect when duration's out
-        if (time == 1) {
-            decreaseDrunkStatusEffefct(entity, amplifier);
+        if (time <= 1) {
+            decreaseDrunkStatusEffect(entity, safeAmplifier);
         }
         return true;
     }
@@ -77,20 +84,19 @@ public class DrunkStatusEffect extends MobEffect {
 
     private void giveHarmfulStatusEffects(LivingEntity entity, int amplifier, int time) {
         if (amplifier >= MAX_DRUNK_AMPLIFIER) {
-            int duration = entity.getEffect(MobEffectRegistry.DRUNK).getDuration();
-            entity.addEffect(new MobEffectInstance(MobEffects.CONFUSION, duration, 0, false, visible));
-            entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, duration, MAX_DRUNK_AMPLIFIER - 1, false, visible));
-        } else if (time % harmulStatusEffectsIntervals[amplifier] == 0) {
-            int nauseaDuration = nauseaDurations[amplifier];
-            int slownessDuration = slownessDurations[amplifier];
-            entity.addEffect(new MobEffectInstance(MobEffects.CONFUSION, nauseaDuration, 0, false, visible));
+            entity.addEffect(new MobEffectInstance(MobEffects.CONFUSION, time, 0, false, VISIBLE));
+            entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, time, MAX_DRUNK_AMPLIFIER - 1, false, VISIBLE));
+        } else if (time % HARMFUL_STATUS_EFFECT_INTERVALS[amplifier] == 0) {
+            int nauseaDuration = NAUSEA_DURATIONS[amplifier];
+            int slownessDuration = SLOWNESS_DURATIONS[amplifier];
+            entity.addEffect(new MobEffectInstance(MobEffects.CONFUSION, nauseaDuration, 0, false, VISIBLE));
             if (amplifier > 0) {
-                entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, slownessDuration, amplifier - 1, false, visible));
+                entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, slownessDuration, amplifier - 1, false, VISIBLE));
             }
         }
     }
 
-    private static void decreaseDrunkStatusEffefct(LivingEntity entity, int amplifier) {
+    private static void decreaseDrunkStatusEffect(LivingEntity entity, int amplifier) {
         if (!entity.level().isClientSide()) {
             entity.removeEffect(MobEffectRegistry.DRUNK);
             MobEffectInstance nextDrunkStatusEffect = getDecreasedDrunkStatusEffect(amplifier);
@@ -105,7 +111,7 @@ public class DrunkStatusEffect extends MobEffect {
         if (nextDrunkAmplifier < MIN_DRUNK_AMPLIFIER) {
             return null;
         } else {
-            return new MobEffectInstance(MobEffectRegistry.DRUNK, getDrunkDuratioin(nextDrunkAmplifier), nextDrunkAmplifier);
+            return new MobEffectInstance(MobEffectRegistry.DRUNK, getDrunkDuration(nextDrunkAmplifier), nextDrunkAmplifier);
         }
     }
 
@@ -115,13 +121,17 @@ public class DrunkStatusEffect extends MobEffect {
         return drunkAmplifier < MAX_DRUNK_AMPLIFIER ? drunkAmplifier + 1 : drunkAmplifier;
     }
 
+    public static int getDrunkDuration(int amplifier) {
+        return amplifier >= MIN_DRUNK_AMPLIFIER && amplifier <= MAX_DRUNK_AMPLIFIER
+                ? DRUNK_DURATIONS[amplifier]
+                : BASE_DURATION;
+    }
+
+    /**
+     * @deprecated Use {@link #getDrunkDuration(int)}. Kept for binary/source compatibility with integrations.
+     */
+    @Deprecated(forRemoval = false)
     public static int getDrunkDuratioin(int amplifier) {
-        try {
-            return drunkDurations[amplifier];
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println("Amplifier is out of range");
-            return BASE_DURATION;
-        }
+        return getDrunkDuration(amplifier);
     }
 }

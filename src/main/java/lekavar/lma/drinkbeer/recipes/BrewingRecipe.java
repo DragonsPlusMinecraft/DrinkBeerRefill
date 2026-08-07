@@ -59,7 +59,7 @@ public class BrewingRecipe implements Recipe<IBrewingInventory> {
     public boolean matches(IBrewingInventory pContainer, Level pLevel) {
         List<Ingredient> testTarget = Lists.newArrayList(input);
         List<ItemStack> tested = pContainer.getIngredients();
-        if (tested.size() < 4) return false;
+        if (tested.size() != input.size()) return false;
         for (ItemStack itemStack : tested) {
             int i = getLatestMatched(testTarget, itemStack);
             if (i == -1) return false;
@@ -126,7 +126,8 @@ public class BrewingRecipe implements Recipe<IBrewingInventory> {
     }
 
     public boolean isCupQualified(IBrewingInventory inventory) {
-        return inventory.getCup().is(cup.getItem()) && inventory.getCup().getCount() >= cup.getCount();
+        ItemStack suppliedCup = inventory.getCup();
+        return ItemStack.isSameItemSameComponents(suppliedCup, cup) && suppliedCup.getCount() >= cup.getCount();
     }
 
     public int getBrewingTime() {
@@ -137,7 +138,7 @@ public class BrewingRecipe implements Recipe<IBrewingInventory> {
         public static final MapCodec<BrewingRecipe> CODEC = RecordCodecBuilder.mapCodec(ins-> ins.group(
                 DrinkBeerCodes.NON_NULL_LIST_4_INGREDIENT_CODEC.fieldOf("ingredients").forGetter(BrewingRecipe::getIngredients),
                 ItemStack.CODEC.fieldOf("cup").forGetter(BrewingRecipe::getBeerCup),
-                Codec.INT.fieldOf("brewing_time").forGetter(BrewingRecipe::getBrewingTime),
+                Codec.intRange(1, Integer.MAX_VALUE).fieldOf("brewing_time").forGetter(BrewingRecipe::getBrewingTime),
                 ItemStack.CODEC.fieldOf("result").forGetter(BrewingRecipe::getResultItemNoRegistryAccess)
                 ).apply(ins,BrewingRecipe::new));
 

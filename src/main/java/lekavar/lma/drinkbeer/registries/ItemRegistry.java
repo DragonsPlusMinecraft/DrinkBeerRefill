@@ -4,11 +4,8 @@ import lekavar.lma.drinkbeer.DrinkBeer;
 import lekavar.lma.drinkbeer.items.BeerMugItem;
 import lekavar.lma.drinkbeer.items.MixedBeerBlockItem;
 import lekavar.lma.drinkbeer.items.SpiceBlockItem;
-import net.minecraft.core.Holder;
+import lekavar.lma.drinkbeer.utils.beer.BeerDefinitions;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -28,6 +25,19 @@ public class ItemRegistry {
     public static final Supplier<Item> GOLDEN_CALL_BELL = ITEMS.register("golden_call_bell", () -> new BlockItem(BlockRegistry.GOLDEN_CALL_BELL.get(), new Item.Properties()));
     public static final Supplier<Item> LEKAS_CALL_BELL = ITEMS.register("lekas_call_bell", () -> new BlockItem(BlockRegistry.LEKAS_CALL_BELL.get(), new Item.Properties()));
 
+    // Authorized upstream 4.0 holiday content
+    public static final Supplier<Item> GIFT_RED = ITEMS.register("gift_red", () -> new BlockItem(BlockRegistry.GIFT_RED.get(), new Item.Properties()));
+    public static final Supplier<Item> GIFT_BLUE = ITEMS.register("gift_blue", () -> new BlockItem(BlockRegistry.GIFT_BLUE.get(), new Item.Properties()));
+    public static final Supplier<Item> GIFT_GREEN = ITEMS.register("gift_green", () -> new BlockItem(BlockRegistry.GIFT_GREEN.get(), new Item.Properties()));
+    public static final Supplier<Item> GIFT_WHITE = ITEMS.register("gift_white", () -> new BlockItem(BlockRegistry.GIFT_WHITE.get(), new Item.Properties()));
+    public static final Supplier<Item> COLORED_LIGHTS = ITEMS.register("colored_lights", () -> new BlockItem(BlockRegistry.COLORED_LIGHTS.get(), new Item.Properties()));
+    public static final Supplier<Item> SIDE_COLORED_LIGHTS = ITEMS.register("side_colored_lights", () -> new BlockItem(BlockRegistry.SIDE_COLORED_LIGHTS.get(), new Item.Properties()));
+    public static final Supplier<Item> STAR_OF_BETHLEHEM = ITEMS.register("star_of_bethlehem", () -> new BlockItem(BlockRegistry.STAR_OF_BETHLEHEM.get(), new Item.Properties().fireResistant()));
+    public static final Supplier<Item> THE_GREAT_STAR_OF_BETHLEHEM = ITEMS.register("the_great_star_of_bethlehem", () -> new BlockItem(BlockRegistry.THE_GREAT_STAR_OF_BETHLEHEM.get(), new Item.Properties().fireResistant()));
+    public static final Supplier<Item> HORSE_MODEL_1 = ITEMS.register("horse_model_1", () -> new BlockItem(BlockRegistry.HORSE_MODEL_1.get(), new Item.Properties()));
+    public static final Supplier<Item> HORSE_MODEL_2 = ITEMS.register("horse_model_2", () -> new BlockItem(BlockRegistry.HORSE_MODEL_2.get(), new Item.Properties()));
+    public static final Supplier<Item> HORSE_MODEL_3 = ITEMS.register("horse_model_3", () -> new BlockItem(BlockRegistry.HORSE_MODEL_3.get(), new Item.Properties()));
+
     public static final Supplier<Item> RECIPE_BOARD_BEER_MUG = ITEMS.register("recipe_board_beer_mug", () -> new BlockItem(BlockRegistry.RECIPE_BOARD_BEER_MUG.get(), new Item.Properties().stacksTo(1)));
     public static final Supplier<Item> RECIPE_BOARD_BEER_MUG_BLAZE_STOUT = ITEMS.register("recipe_board_beer_mug_blaze_stout", () -> new BlockItem(BlockRegistry.RECIPE_BOARD_BEER_MUG_BLAZE_STOUT.get(), new Item.Properties().stacksTo(1)));
     public static final Supplier<Item> RECIPE_BOARD_BEER_MUG_BLAZE_MILK_STOUT = ITEMS.register("recipe_board_beer_mug_blaze_milk_stout", () -> new BlockItem(BlockRegistry.RECIPE_BOARD_BEER_MUG_BLAZE_MILK_STOUT.get(), new Item.Properties().stacksTo(1)));
@@ -41,15 +51,15 @@ public class ItemRegistry {
     public static final Supplier<Item> RECIPE_BOARD_PACKAGE = ITEMS.register("recipe_board_package", () -> new BlockItem(BlockRegistry.RECIPE_BOARD_PACKAGE.get(), new Item.Properties().stacksTo(1)));
 
     //beer
-    public static final Supplier<Item> BEER_MUG = ITEMS.register("beer_mug", () -> new BeerMugItem(BlockRegistry.BEER_MUG.get(), new MobEffectInstance(MobEffects.DIG_SPEED, 1200), 2, true));
-    public static final Supplier<Item> BEER_MUG_BLAZE_STOUT = ITEMS.register("beer_mug_blaze_stout", () -> new BeerMugItem(BlockRegistry.BEER_MUG_BLAZE_STOUT.get(), new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 1800), 2, true));
-    public static final Supplier<Item> BEER_MUG_BLAZE_MILK_STOUT = ITEMS.register("beer_mug_blaze_milk_stout", () -> new BeerMugItem(BlockRegistry.BEER_MUG_BLAZE_MILK_STOUT.get(), new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 2400), 2, true));
-    public static final Supplier<Item> BEER_MUG_APPLE_LAMBIC = ITEMS.register("beer_mug_apple_lambic", () -> new BeerMugItem(BlockRegistry.BEER_MUG_APPLE_LAMBIC.get(), new MobEffectInstance(MobEffects.REGENERATION, 300), 3, true));
-    public static final Supplier<Item> BEER_MUG_SWEET_BERRY_KRIEK = ITEMS.register("beer_mug_sweet_berry_kriek", () -> new BeerMugItem(BlockRegistry.BEER_MUG_SWEET_BERRY_KRIEK.get(), new MobEffectInstance(MobEffects.REGENERATION, 400), 3, true));
-    public static final Supplier<Item> BEER_MUG_HAARS_ICEY_PALE_LAGER = ITEMS.register("beer_mug_haars_icey_pale_lager", () -> new BeerMugItem(BlockRegistry.BEER_MUG_HAARS_ICEY_PALE_LAGER.get(), () -> new MobEffectInstance((Holder<MobEffect>) MobEffectRegistry.DRUNK_FROST_WALKER, 1200), 1, true));
-    public static final Supplier<Item> BEER_MUG_PUMPKIN_KVASS = ITEMS.register("beer_mug_pumpkin_kvass", () -> new BeerMugItem(BlockRegistry.BEER_MUG_PUMPKIN_KVASS.get(), 9, false));
-    public static final Supplier<Item> BEER_MUG_NIGHT_HOWL_KVASS = ITEMS.register("beer_mug_night_howl_kvass", () -> new BeerMugItem(BlockRegistry.BEER_MUG_NIGHT_HOWL_KVASS.get(), 4, true));
-    public static final Supplier<Item> BEER_MUG_FROTHY_PINK_EGGNOG = ITEMS.register("beer_mug_frothy_pink_eggnog", () -> new BeerMugItem(BlockRegistry.BEER_MUG_FROTHY_PINK_EGGNOG.get(), new MobEffectInstance(MobEffects.ABSORPTION, 2400), 2, true));
+    public static final Supplier<Item> BEER_MUG = ITEMS.register("beer_mug", () -> new BeerMugItem(BlockRegistry.BEER_MUG.get(), BeerDefinitions.BEER_MUG));
+    public static final Supplier<Item> BEER_MUG_BLAZE_STOUT = ITEMS.register("beer_mug_blaze_stout", () -> new BeerMugItem(BlockRegistry.BEER_MUG_BLAZE_STOUT.get(), BeerDefinitions.BLAZE_STOUT));
+    public static final Supplier<Item> BEER_MUG_BLAZE_MILK_STOUT = ITEMS.register("beer_mug_blaze_milk_stout", () -> new BeerMugItem(BlockRegistry.BEER_MUG_BLAZE_MILK_STOUT.get(), BeerDefinitions.BLAZE_MILK_STOUT));
+    public static final Supplier<Item> BEER_MUG_APPLE_LAMBIC = ITEMS.register("beer_mug_apple_lambic", () -> new BeerMugItem(BlockRegistry.BEER_MUG_APPLE_LAMBIC.get(), BeerDefinitions.APPLE_LAMBIC));
+    public static final Supplier<Item> BEER_MUG_SWEET_BERRY_KRIEK = ITEMS.register("beer_mug_sweet_berry_kriek", () -> new BeerMugItem(BlockRegistry.BEER_MUG_SWEET_BERRY_KRIEK.get(), BeerDefinitions.SWEET_BERRY_KRIEK));
+    public static final Supplier<Item> BEER_MUG_HAARS_ICEY_PALE_LAGER = ITEMS.register("beer_mug_haars_icey_pale_lager", () -> new BeerMugItem(BlockRegistry.BEER_MUG_HAARS_ICEY_PALE_LAGER.get(), BeerDefinitions.HAARS_ICEY_PALE_LAGER));
+    public static final Supplier<Item> BEER_MUG_PUMPKIN_KVASS = ITEMS.register("beer_mug_pumpkin_kvass", () -> new BeerMugItem(BlockRegistry.BEER_MUG_PUMPKIN_KVASS.get(), BeerDefinitions.PUMPKIN_KVASS));
+    public static final Supplier<Item> BEER_MUG_NIGHT_HOWL_KVASS = ITEMS.register("beer_mug_night_howl_kvass", () -> new BeerMugItem(BlockRegistry.BEER_MUG_NIGHT_HOWL_KVASS.get(), BeerDefinitions.NIGHT_HOWL_KVASS));
+    public static final Supplier<Item> BEER_MUG_FROTHY_PINK_EGGNOG = ITEMS.register("beer_mug_frothy_pink_eggnog", () -> new BeerMugItem(BlockRegistry.BEER_MUG_FROTHY_PINK_EGGNOG.get(), BeerDefinitions.FROTHY_PINK_EGGNOG));
     public static final Supplier<Item> MIXED_BEER = ITEMS.register("mixed_beer", () -> new MixedBeerBlockItem(BlockRegistry.MIXED_BEER.get()));
 
     // Spices

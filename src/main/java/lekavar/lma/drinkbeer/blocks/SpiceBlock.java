@@ -28,8 +28,6 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
-import java.util.Random;
-
 public class SpiceBlock extends HalfTransparentBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public final static VoxelShape DEFAULT_SHAPE = box(5.5, 0, 5.5, 10.5, 2, 10.5);
@@ -62,7 +60,7 @@ public class SpiceBlock extends HalfTransparentBlock {
         if (level.isClientSide) {
             SimpleParticleType particle = Spices.byItem(this.asItem()).getFlavor().getParticle();
             double x = (double) pos.getX() + 0.5D;
-            double y = (double) pos.getY() + 0.3D + new Random().nextDouble() / 4;
+            double y = (double) pos.getY() + 0.3D + level.getRandom().nextDouble() / 4;
             double z = (double) pos.getZ() + 0.5D;
             if (particle != null) {
                 level.addParticle(particle, x, y, z, 0.0D, 0.0D, 0.0D);

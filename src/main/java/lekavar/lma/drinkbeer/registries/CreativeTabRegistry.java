@@ -25,6 +25,17 @@ public class CreativeTabRegistry {
                 output.accept(ItemRegistry.IRON_CALL_BELL.get());
                 output.accept(ItemRegistry.GOLDEN_CALL_BELL.get());
                 output.accept(ItemRegistry.LEKAS_CALL_BELL.get());
+                output.accept(ItemRegistry.GIFT_RED.get());
+                output.accept(ItemRegistry.GIFT_BLUE.get());
+                output.accept(ItemRegistry.GIFT_GREEN.get());
+                output.accept(ItemRegistry.GIFT_WHITE.get());
+                output.accept(ItemRegistry.COLORED_LIGHTS.get());
+                output.accept(ItemRegistry.SIDE_COLORED_LIGHTS.get());
+                output.accept(ItemRegistry.STAR_OF_BETHLEHEM.get());
+                output.accept(ItemRegistry.THE_GREAT_STAR_OF_BETHLEHEM.get());
+                output.accept(ItemRegistry.HORSE_MODEL_1.get());
+                output.accept(ItemRegistry.HORSE_MODEL_2.get());
+                output.accept(ItemRegistry.HORSE_MODEL_3.get());
                 output.accept(ItemRegistry.RECIPE_BOARD_PACKAGE.get());
                 output.accept(ItemRegistry.RECIPE_BOARD_BEER_MUG.get());
                 output.accept(ItemRegistry.RECIPE_BOARD_BEER_MUG_BLAZE_STOUT.get());

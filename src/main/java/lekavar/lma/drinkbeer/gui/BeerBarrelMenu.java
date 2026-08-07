@@ -4,16 +4,17 @@ import lekavar.lma.drinkbeer.blockentities.BeerBarrelBlockEntity;
 import lekavar.lma.drinkbeer.registries.ItemRegistry;
 import lekavar.lma.drinkbeer.registries.MenuTypeRegistry;
 import lekavar.lma.drinkbeer.registries.SoundEventRegistry;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -27,6 +28,10 @@ public class BeerBarrelMenu extends AbstractContainerMenu {
     private final ContainerData syncData;
 
     public BeerBarrelMenu(int id, Container brewingSpace, ContainerData syncData, Inventory playerInventory, BeerBarrelBlockEntity beerBarrelBlockEntity) {
+        this(id, brewingSpace, syncData, playerInventory, beerBarrelBlockEntity.getBlockPos());
+    }
+
+    private BeerBarrelMenu(int id, Container brewingSpace, ContainerData syncData, Inventory playerInventory, BlockPos pos) {
         super(MenuTypeRegistry.beerBarrelContainer.get(), id);
         this.brewingSpace = brewingSpace;
         this.syncData = syncData;
@@ -35,14 +40,14 @@ public class BeerBarrelMenu extends AbstractContainerMenu {
         // Player Inventory
         layoutPlayerInventorySlots(8, 84, new InvWrapper(playerInventory));
         // Input Ingredients
-        addSlot(new Slot(brewingSpace, 0, 28, 26));
-        addSlot(new Slot(brewingSpace, 1, 46, 26));
-        addSlot(new Slot(brewingSpace, 2, 28, 44));
-        addSlot(new Slot(brewingSpace, 3, 46, 44));
+        addSlot(new InputSlot(brewingSpace, 0, 28, 26, this));
+        addSlot(new InputSlot(brewingSpace, 1, 46, 26, this));
+        addSlot(new InputSlot(brewingSpace, 2, 28, 44, this));
+        addSlot(new InputSlot(brewingSpace, 3, 46, 44, this));
         // Empty Cup
-        addSlot(new Slot(brewingSpace, 4, 73, 50));
+        addSlot(new InputSlot(brewingSpace, 4, 73, 50, this));
         // Output
-        addSlot(new OutputSlot(brewingSpace, 5, 128, 34, syncData, beerBarrelBlockEntity));
+        addSlot(new OutputSlot(brewingSpace, 5, 128, 34, syncData, pos));
 
         //Tracking Data
         addDataSlots(syncData);
@@ -53,7 +58,7 @@ public class BeerBarrelMenu extends AbstractContainerMenu {
     }
 
     public BeerBarrelMenu(int id, Inventory playerInventory, BlockPos pos) {
-        this(id, ((BeerBarrelBlockEntity) Minecraft.getInstance().level.getBlockEntity(pos)).getBrewingInventory(), ((BeerBarrelBlockEntity) Minecraft.getInstance().level.getBlockEntity(pos)).syncData, playerInventory, ((BeerBarrelBlockEntity) Minecraft.getInstance().level.getBlockEntity(pos)));
+        this(id, new SimpleContainer(6), new SimpleContainerData(2), playerInventory, pos);
     }
 
     private int addSlotRange(IItemHandler handler, int index, int x, int y, int amount, int dx) {
@@ -84,9 +89,15 @@ public class BeerBarrelMenu extends AbstractContainerMenu {
 
     @Override
     public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
+        if (pIndex < 0 || pIndex >= this.slots.size()) {
+            return ItemStack.EMPTY;
+        }
         ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = this.slots.get(pIndex);
         if (slot != null && slot.hasItem()) {
+            if (pIndex >= 36 && pIndex < 41 && getIsBrewing()) {
+                return ItemStack.EMPTY;
+            }
             ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
 
@@ -132,7 +143,7 @@ public class BeerBarrelMenu extends AbstractContainerMenu {
     }
 
     public boolean getIsBrewing() {
-        return syncData.get(STATUS_CODE) == 1;
+        return syncData.get(STATUS_CODE) == BeerBarrelBlockEntity.STATUS_BREWING;
     }
 
     public int getStandardBrewingTime() {
@@ -154,12 +165,12 @@ public class BeerBarrelMenu extends AbstractContainerMenu {
 
     static class OutputSlot extends Slot {
         private final ContainerData syncData;
-        private final BeerBarrelBlockEntity beerBarrelBlockEntity;
+        private final BlockPos blockPos;
 
-        public OutputSlot(Container container, int p_i1824_2_, int p_i1824_3_, int p_i1824_4_, ContainerData syncData, BeerBarrelBlockEntity beerBarrelBlockEntity) {
+        public OutputSlot(Container container, int p_i1824_2_, int p_i1824_3_, int p_i1824_4_, ContainerData syncData, BlockPos blockPos) {
             super(container, p_i1824_2_, p_i1824_3_, p_i1824_4_);
             this.syncData = syncData;
-            this.beerBarrelBlockEntity = beerBarrelBlockEntity;
+            this.blockPos = blockPos;
         }
 
         // After player picking up product, play pour sound effect
@@ -167,11 +178,12 @@ public class BeerBarrelMenu extends AbstractContainerMenu {
         @Override
         public void onTake(Player player, ItemStack pStack) {
             if (pStack.getItem() == ItemRegistry.BEER_MUG_FROTHY_PINK_EGGNOG.get()) {
-                player.level().playSound(null, beerBarrelBlockEntity.getBlockPos(), SoundEventRegistry.POURING_CHRISTMAS.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+                player.level().playSound(null, blockPos, SoundEventRegistry.POURING_CHRISTMAS.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
 
             } else {
-                player.level().playSound(null, beerBarrelBlockEntity.getBlockPos(), SoundEventRegistry.POURING.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+                player.level().playSound(null, blockPos, SoundEventRegistry.POURING.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             }
+            super.onTake(player, pStack);
         }
 
         // Placing item on output slot is prohibited.
@@ -183,7 +195,21 @@ public class BeerBarrelMenu extends AbstractContainerMenu {
         // Only when the statusCode is 2 (waiting for pickup), pickup is allowed.
         @Override
         public boolean mayPickup(Player pPlayer) {
-            return syncData.get(STATUS_CODE) == 2;
+            return syncData.get(STATUS_CODE) == BeerBarrelBlockEntity.STATUS_READY;
+        }
+    }
+
+    static class InputSlot extends Slot {
+        private final BeerBarrelMenu menu;
+
+        public InputSlot(Container container, int slot, int x, int y, BeerBarrelMenu menu) {
+            super(container, slot, x, y);
+            this.menu = menu;
+        }
+
+        @Override
+        public boolean mayPickup(Player player) {
+            return !menu.getIsBrewing();
         }
     }
 }

@@ -9,12 +9,12 @@ public class CapabilityRegistry {
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
                 BlockEntityRegistry.BARTENDING_TABLE_TILEENTITY.get(),
-                (be, side) -> be.itemHandler
+                (be, side) -> be.getItemHandler(side)
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
                 BlockEntityRegistry.BEER_BARREL_TILEENTITY.get(),
-                (be, side) -> be.itemHandler
+                (be, side) -> be.getItemHandler(side)
         );
     }
 }

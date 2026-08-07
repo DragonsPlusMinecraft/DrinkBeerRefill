@@ -9,7 +9,6 @@ import lekavar.lma.drinkbeer.utils.tradebox.Good;
 import lekavar.lma.drinkbeer.utils.tradebox.Locations;
 import lekavar.lma.drinkbeer.utils.tradebox.Residents;
 import lekavar.lma.drinkbeer.utils.tradebox.TradeMission;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.sounds.SoundSource;
@@ -19,6 +18,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -47,24 +47,26 @@ public class TradeBoxMenu extends AbstractContainerMenu {
     private final ContainerData syncData;
 
     private Runnable inventoryChangeListener;
-    public Player player;
+    private final Player player;
 
-    private BlockPos pos;
+    private final BlockPos pos;
 
     public TradeBoxMenu(int id, Inventory playerInventory, FriendlyByteBuf data) {
         this(id, playerInventory, data.readBlockPos());
     }
 
     public TradeBoxMenu(int id, Inventory playerInventory, BlockPos pos) {
-        this(id, ((TradeBoxBlockEntity) Minecraft.getInstance().level.getBlockEntity(pos)).goodInventory, ((TradeBoxBlockEntity) Minecraft.getInstance().level.getBlockEntity(pos)).syncData, playerInventory, ((TradeBoxBlockEntity) Minecraft.getInstance().level.getBlockEntity(pos)));
+        this(id, new SimpleContainer(8), new SimpleContainerData(4), playerInventory, pos, false);
     }
 
     public TradeBoxMenu(int id, Container goodInventory, ContainerData syncData, Inventory playerInventory, TradeBoxBlockEntity tradeBoxBlockEntity) {
+        this(id, goodInventory, syncData, playerInventory, tradeBoxBlockEntity.getBlockPos(), true);
+    }
+
+    private TradeBoxMenu(int id, Container goodInventory, ContainerData syncData, Inventory playerInventory, BlockPos pos, boolean serverBacked) {
         super(MenuTypeRegistry.tradeBoxContainer.get(), id);
         this.syncData = syncData;
-        this.pos = tradeBoxBlockEntity.getBlockPos();
-        //Tracking Data
-        addDataSlots(syncData);
+        this.pos = pos;
 
         this.inventoryChangeListener = () -> {
         };
@@ -105,7 +107,7 @@ public class TradeBoxMenu extends AbstractContainerMenu {
         layoutPlayerInventorySlots(8, 84, new InvWrapper(playerInventory));
 
         //Generate trade mission if tradebox is in trading process but has illegal trade mission
-        if (isTrading() && !hasLegalTradeMission()) {
+        if (serverBacked && isTrading() && !hasLegalTradeMission()) {
             setTradeboxTrading();
         }
 
@@ -141,7 +143,16 @@ public class TradeBoxMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return true;
+        return player.level().getBlockEntity(pos) instanceof TradeBoxBlockEntity
+                && player.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) <= 64.0D;
+    }
+
+    public boolean isBoundTo(BlockPos blockPos) {
+        return pos.equals(blockPos);
+    }
+
+    public BlockPos getBlockPos() {
+        return pos;
     }
 
     public int getCoolingTime() {
@@ -159,7 +170,9 @@ public class TradeBoxMenu extends AbstractContainerMenu {
 
     @Override
     public void slotsChanged(Container inventory) {
-        checkTradeMission();
+        if (!player.level().isClientSide()) {
+            checkTradeMission();
+        }
         this.broadcastChanges();
     }
 
@@ -195,20 +208,15 @@ public class TradeBoxMenu extends AbstractContainerMenu {
 
     public void consumeInputGood(Map<Item, Integer> targetGoodMap) {
         for (Map.Entry<Item, Integer> targetGood : targetGoodMap.entrySet()) {
-            int currentNum = 0;
-            int requiredNum = targetGood.getValue();
+            int consumedCount = 0;
+            int requiredCount = targetGood.getValue();
             for (Slot slot : tradeboxSlots) {
                 if (targetGood.getKey().equals(slot.getItem().getItem())) {
-                    ItemStack itemStack = slot.getItem();
-                    if (itemStack.getCount() >= targetGood.getValue()) {
-                        currentNum = requiredNum;
-                        slot.remove(requiredNum);
-                    } else {
-                        currentNum += itemStack.getCount();
-                        slot.remove(itemStack.getCount());
-                    }
+                    int amount = Math.min(slot.getItem().getCount(), requiredCount - consumedCount);
+                    slot.remove(amount);
+                    consumedCount += amount;
                 }
-                if (currentNum == requiredNum) {
+                if (consumedCount >= requiredCount) {
                     break;
                 }
             }
@@ -260,16 +268,26 @@ public class TradeBoxMenu extends AbstractContainerMenu {
 
     @Override
     public ItemStack quickMoveStack(Player player, int invSlot) {
+        if (invSlot < 0 || invSlot >= this.slots.size()) {
+            return ItemStack.EMPTY;
+        }
+        int inputEnd = this.tradeboxSlots.size();
+        int offerEnd = inputEnd + this.goodSlots.size();
+        if (invSlot >= inputEnd && invSlot < offerEnd) {
+            // Offer slots are display-only and must never become a source for shift-click transfers.
+            return ItemStack.EMPTY;
+        }
+
         ItemStack newStack = ItemStack.EMPTY;
         Slot slot = this.slots.get(invSlot);
         if (slot != null && slot.hasItem()) {
             ItemStack originalStack = slot.getItem();
             newStack = originalStack.copy();
-            if (invSlot < this.tradeboxSlots.size()) {
-                if (!this.moveItemStackTo(originalStack, this.tradeboxSlots.size(), this.slots.size(), true)) {
+            if (invSlot < inputEnd) {
+                if (!this.moveItemStackTo(originalStack, offerEnd, this.slots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.moveItemStackTo(originalStack, 0, this.tradeboxSlots.size(), false)) {
+            } else if (!this.moveItemStackTo(originalStack, 0, inputEnd, false)) {
                 return ItemStack.EMPTY;
             }
 
@@ -284,17 +302,18 @@ public class TradeBoxMenu extends AbstractContainerMenu {
     }
 
     public void setTradeMission(TradeMission tradeMission) {
+        clearGoodInventory();
         setLocationId(tradeMission.getLocationId());
         setResidentId(tradeMission.getResidentId());
         if (!tradeMission.getGoodToLocationList().isEmpty()) {
-            IntStream.range(0, tradeMission.getGoodToLocationList().size()).forEach(i -> {
+            IntStream.range(0, Math.min(4, tradeMission.getGoodToLocationList().size())).forEach(i -> {
                 Good good = tradeMission.getGoodToLocationList().get(i);
                 ItemStack goodItemStack = new ItemStack(good.getGoodItem(), good.getCount());
                 goodSlots.get(i).set(goodItemStack);
             });
         }
         if (!tradeMission.getGoodFromLocationList().isEmpty()) {
-            IntStream.range(0, tradeMission.getGoodFromLocationList().size()).forEach(i -> {
+            IntStream.range(0, Math.min(4, tradeMission.getGoodFromLocationList().size())).forEach(i -> {
                 Good good = tradeMission.getGoodFromLocationList().get(i);
                 ItemStack goodItemStack = new ItemStack(good.getGoodItem(), good.getCount());
                 goodSlots.get(4 + i).set(goodItemStack);
@@ -311,19 +330,11 @@ public class TradeBoxMenu extends AbstractContainerMenu {
     }
 
     public void setTradeboxTrading() {
-        TradeMission tradeMission = new TradeMission();
-        try {
-            Block block = player.level().getBlockState(pos).getBlock();
-            if (block.equals(BlockRegistry.TRADE_BOX.get())) {
-                tradeMission = TradeMission.genRandomTradeMission();
-            }
-            /*else if(block.asItem().equals(DrinkBeer.TRADE_BOX_NORTHON.asItem()){
-                tradeMission = TradeMission.genSpecificTradeMission(Locations.NORTHON.getId());
-            }*/
-        } catch (Exception e) {
-            tradeMission = TradeMission.genRandomTradeMission();
+        Block block = player.level().getBlockState(pos).getBlock();
+        if (!block.equals(BlockRegistry.TRADE_BOX.get())) {
+            return;
         }
-        setTradeMission(tradeMission);
+        setTradeMission(TradeMission.genRandomTradeMission());
         setProcess(TradeBoxBlockEntity.PROCESS_TRADING);
     }
 
@@ -336,9 +347,11 @@ public class TradeBoxMenu extends AbstractContainerMenu {
     }
 
     public boolean hasLegalTradeMission() {
-        if (!(Math.max(getLocationId(), Locations.EMPTY_LOCATION.getId()) == Math.min(getLocationId(), Locations.size())))
+        if (getLocationId() <= Locations.EMPTY_LOCATION.getId() || getLocationId() >= Locations.size())
             return false;
-        if (!(Math.max(getResidentId(), Residents.EMPTY_RESIDENT.getId()) == Math.min(getResidentId(), Residents.size())))
+        if (getResidentId() <= Residents.EMPTY_RESIDENT.getId() || getResidentId() >= Residents.size())
+            return false;
+        if (Residents.byId(getResidentId()).getLocation().getId() != getLocationId())
             return false;
         if (getToLocationGoodSlots().stream().noneMatch(Slot::hasItem))
             return false;

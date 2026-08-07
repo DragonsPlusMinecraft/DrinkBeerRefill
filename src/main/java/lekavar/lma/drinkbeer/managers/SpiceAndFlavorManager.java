@@ -1,5 +1,6 @@
 package lekavar.lma.drinkbeer.managers;
 
+import lekavar.lma.drinkbeer.DrinkBeerConfig;
 import lekavar.lma.drinkbeer.utils.mixedbeer.FlavorCombinations;
 import lekavar.lma.drinkbeer.utils.mixedbeer.Flavors;
 import lekavar.lma.drinkbeer.utils.mixedbeer.MixedBeerOnUsing;
@@ -82,32 +83,24 @@ public class SpiceAndFlavorManager {
         }
         for (FlavorCombinations flavorCombination : FlavorCombinations.getFlavorCombinationList()) {
             List<Pair<List<Flavors>, Boolean>> flavorCombinationList = flavorCombination.getFlavorCombination().getFlavorCombinationList();
-            try {
-                for (Pair<List<Flavors>, Boolean> flavorCombinationPair : flavorCombinationList) {
-                    //Check flavors in order
-                    if (flavorCombinationPair.getValue()) {
-                        if (flavorCombinationPair.getKey().equals(flavorList)) {
-                            return flavorCombination;
-                        }
-                    }
-                    //Check flavors out of order
-                    else {
-                        List<Flavors> tempFlavorList1 = new ArrayList<>();
-                        List<Flavors> tempFlavorList2 = new ArrayList<>();
-
-                        Collections.copy(tempFlavorList1, flavorList);
-                        Collections.copy(tempFlavorList2, flavorCombinationPair.getKey());
-
-                        Collections.sort(tempFlavorList1);
-                        Collections.sort(tempFlavorList2);
-                        if (tempFlavorList1.equals(tempFlavorList2)) {
-                            return flavorCombination;
-                        }
+            for (Pair<List<Flavors>, Boolean> flavorCombinationPair : flavorCombinationList) {
+                //Check flavors in order
+                if (flavorCombinationPair.getValue()) {
+                    if (flavorCombinationPair.getKey().equals(flavorList)) {
+                        return flavorCombination;
                     }
                 }
-            } catch (Exception e) {
-                System.out.println("NULL value of FlavorCombination in FlavorCombinations!");
-                System.out.println("Found in " + flavorCombination.getCombinedFlavor());
+                //Check flavors out of order
+                else {
+                    List<Flavors> tempFlavorList1 = new ArrayList<>(flavorList);
+                    List<Flavors> tempFlavorList2 = new ArrayList<>(flavorCombinationPair.getKey());
+
+                    Collections.sort(tempFlavorList1);
+                    Collections.sort(tempFlavorList2);
+                    if (tempFlavorList1.equals(tempFlavorList2)) {
+                        return flavorCombination;
+                    }
+                }
             }
         }
         return null;
@@ -189,6 +182,9 @@ public class SpiceAndFlavorManager {
     }
 
     public static void applyStormyFlavorAction(int actionedTimes, Level world, LivingEntity user) {
+        if (!canChangeWorld(world)) {
+            return;
+        }
         int range = 9 + (actionedTimes == 3 ? 22 : actionedTimes * 4);
         int halfRange = (range - 1) / 2;
         int xStart = 0;
@@ -219,13 +215,19 @@ public class SpiceAndFlavorManager {
                 xStart = -range;
             }
         }
-        for (int x = xStart; x < xEnd; x++) {
+        int remainingChanges = DrinkBeerConfig.MAX_WORLD_CHANGES_PER_DRINK.get();
+        for (int x = xStart; x < xEnd && remainingChanges > 0; x++) {
             for (int y = 0; y < range; y++) {
                 for (int z = zStart; z < zEnd; z++) {
                     BlockPos pos = user.blockPosition().offset(x, y, z);
+                    if (!world.isLoaded(pos)) {
+                        continue;
+                    }
                     BlockState blockState = world.getBlockState(pos);
-                    if (blockState.is(BlockTags.LOGS) || blockState.is(BlockTags.LEAVES)) {
-                        world.destroyBlock(pos, true);
+                    if ((blockState.is(BlockTags.LOGS) || blockState.is(BlockTags.LEAVES))
+                            && world.destroyBlock(pos, true)
+                            && --remainingChanges == 0) {
+                        return;
                     }
                 }
             }
@@ -254,6 +256,9 @@ public class SpiceAndFlavorManager {
     }
 
     public static void applyDryingFlavorAction(int actionedTimes, Level world, LivingEntity user) {
+        if (!canChangeWorld(world)) {
+            return;
+        }
         int range = 17 + actionedTimes * 4;
         int halfRange = (range - 1) / 2;
         int xStart = 0;
@@ -284,16 +289,28 @@ public class SpiceAndFlavorManager {
                 xStart = -range;
             }
         }
-        for (int x = xStart; x < xEnd; x++) {
+        int remainingChanges = DrinkBeerConfig.MAX_WORLD_CHANGES_PER_DRINK.get();
+        for (int x = xStart; x < xEnd && remainingChanges > 0; x++) {
             for (int y = 0; y < range; y++) {
                 for (int z = zStart; z < zEnd; z++) {
                     BlockPos pos = user.blockPosition().offset(x, y, z);
+                    if (!world.isLoaded(pos)) {
+                        continue;
+                    }
                     BlockState blockState = world.getBlockState(pos);
-                    if (blockState.getBlock().equals(Blocks.WATER)) {
-                        world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+                    if (blockState.is(Blocks.WATER)
+                            && world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState())
+                            && --remainingChanges == 0) {
+                        return;
                     }
                 }
             }
         }
+    }
+
+    private static boolean canChangeWorld(Level world) {
+        return !world.isClientSide()
+                && DrinkBeerConfig.ENABLE_WORLD_CHANGING_FLAVOR_EFFECTS.get()
+                && DrinkBeerConfig.MAX_WORLD_CHANGES_PER_DRINK.get() > 0;
     }
 }

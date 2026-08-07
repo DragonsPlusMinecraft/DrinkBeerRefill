@@ -73,5 +73,25 @@
   "sounds": [
 	  "drinkbeer:tradebox_close"
     ]
+  },
+  "gift_open_sound": {
+    "sounds": [
+      "drinkbeer:gift_open_sound"
+    ]
+  },
+  "neigh1_sound": {
+    "sounds": [
+      "drinkbeer:neigh1_sound"
+    ]
+  },
+  "neigh2_sound": {
+    "sounds": [
+      "drinkbeer:neigh2_sound"
+    ]
+  },
+  "bell_sound": {
+    "sounds": [
+      "drinkbeer:bell_sound"
+    ]
   }
 }

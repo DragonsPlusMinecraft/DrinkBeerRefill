@@ -7,7 +7,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -21,13 +20,17 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 public class MixedBeerBlock extends BaseEntityBlock {
     public final static MapCodec<MixedBeerBlock> CODEC = simpleCodec(pro->new MixedBeerBlock());
@@ -54,21 +57,21 @@ public class MixedBeerBlock extends BaseEntityBlock {
     }
 
     @Override
-    public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean moved) {
-        MixedBeerBlockEntity te = (MixedBeerBlockEntity) world.getBlockEntity(pos);
-        if (te != null) {
-            ItemStack mixedBeerItemStack = te.getPickStack();
-            Containers.dropItemStack(world, pos.getX(), pos.getY(), pos.getZ(), mixedBeerItemStack);
-        } else {
-            System.out.println("Something goes wrong with dropping mixed beer item stack!");
+    protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+        BlockEntity blockEntity = params.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
+        if (blockEntity instanceof MixedBeerBlockEntity mixedBeerBlockEntity) {
+            return List.of(mixedBeerBlockEntity.getPickStack());
         }
-        super.onRemove(state, world, pos, newState, moved);
+        return List.of();
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!level.isClientSide) {
-            level.removeBlock(pos, false);
+            if (level.getBlockEntity(pos) instanceof MixedBeerBlockEntity mixedBeerBlockEntity) {
+                ItemHandlerHelper.giveItemToPlayer(player, mixedBeerBlockEntity.getPickStack());
+                level.removeBlock(pos, false);
+            }
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
@@ -94,9 +97,8 @@ public class MixedBeerBlock extends BaseEntityBlock {
         if (world.isClientSide()) {
             super.animateTick(state, world, pos, random);
             if (random.nextInt(5) == 0) {
-                MixedBeerBlockEntity entity = (MixedBeerBlockEntity) world.getBlockEntity(pos);
-                SimpleParticleType particle = SpiceAndFlavorManager.getLastSpiceFlavorParticle(entity.getSpiceList());
-                if (random.nextInt(5) == 0) {
+                if (world.getBlockEntity(pos) instanceof MixedBeerBlockEntity entity && random.nextInt(5) == 0) {
+                    SimpleParticleType particle = SpiceAndFlavorManager.getLastSpiceFlavorParticle(entity.getSpiceList());
                     double x = (double) pos.getX() + 0.5D;
                     double y = (double) pos.getY() + 0.5D + random.nextDouble() / 4;
                     double z = (double) pos.getZ() + 0.5D;

@@ -1,0 +1,124 @@
+{
+  "variants": {
+    "facing=north,type=1": {
+      "model": "drinkbeer:block/center_colored_lights1"
+    },
+    "facing=east,type=1": {
+      "model": "drinkbeer:block/center_colored_lights1",
+      "y": 90
+    },
+    "facing=south,type=1": {
+      "model": "drinkbeer:block/center_colored_lights1",
+      "y": 180
+    },
+    "facing=west,type=1": {
+      "model": "drinkbeer:block/center_colored_lights1",
+      "y": 270
+    },
+    "facing=north,type=2": {
+      "model": "drinkbeer:block/center_colored_lights2"
+    },
+    "facing=east,type=2": {
+      "model": "drinkbeer:block/center_colored_lights2",
+      "y": 90
+    },
+    "facing=south,type=2": {
+      "model": "drinkbeer:block/center_colored_lights2",
+      "y": 180
+    },
+    "facing=west,type=2": {
+      "model": "drinkbeer:block/center_colored_lights2",
+      "y": 270
+    },
+    "facing=north,type=3": {
+      "model": "drinkbeer:block/center_colored_lights3"
+    },
+    "facing=east,type=3": {
+      "model": "drinkbeer:block/center_colored_lights3",
+      "y": 90
+    },
+    "facing=south,type=3": {
+      "model": "drinkbeer:block/center_colored_lights3",
+      "y": 180
+    },
+    "facing=west,type=3": {
+      "model": "drinkbeer:block/center_colored_lights3",
+      "y": 270
+    },
+    "facing=north,type=4": {
+      "model": "drinkbeer:block/center_colored_lights4"
+    },
+    "facing=east,type=4": {
+      "model": "drinkbeer:block/center_colored_lights4",
+      "y": 90
+    },
+    "facing=south,type=4": {
+      "model": "drinkbeer:block/center_colored_lights4",
+      "y": 180
+    },
+    "facing=west,type=4": {
+      "model": "drinkbeer:block/center_colored_lights4",
+      "y": 270
+    },
+    "facing=north,type=5": {
+      "model": "drinkbeer:block/center_colored_lights5"
+    },
+    "facing=east,type=5": {
+      "model": "drinkbeer:block/center_colored_lights5",
+      "y": 90
+    },
+    "facing=south,type=5": {
+      "model": "drinkbeer:block/center_colored_lights5",
+      "y": 180
+    },
+    "facing=west,type=5": {
+      "model": "drinkbeer:block/center_colored_lights5",
+      "y": 270
+    },
+    "facing=north,type=6": {
+      "model": "drinkbeer:block/center_colored_lights6"
+    },
+    "facing=east,type=6": {
+      "model": "drinkbeer:block/center_colored_lights6",
+      "y": 90
+    },
+    "facing=south,type=6": {
+      "model": "drinkbeer:block/center_colored_lights6",
+      "y": 180
+    },
+    "facing=west,type=6": {
+      "model": "drinkbeer:block/center_colored_lights6",
+      "y": 270
+    },
+    "facing=north,type=7": {
+      "model": "drinkbeer:block/center_colored_lights7"
+    },
+    "facing=east,type=7": {
+      "model": "drinkbeer:block/center_colored_lights7",
+      "y": 90
+    },
+    "facing=south,type=7": {
+      "model": "drinkbeer:block/center_colored_lights7",
+      "y": 180
+    },
+    "facing=west,type=7": {
+      "model": "drinkbeer:block/center_colored_lights7",
+      "y": 270
+    },
+    "facing=north,type=8": {
+      "model": "drinkbeer:block/center_colored_lights8"
+    },
+    "facing=east,type=8": {
+      "model": "drinkbeer:block/center_colored_lights8",
+      "y": 90
+    },
+    "facing=south,type=8": {
+      "model": "drinkbeer:block/center_colored_lights8",
+      "y": 180
+    },
+    "facing=west,type=8": {
+      "model": "drinkbeer:block/center_colored_lights8",
+      "y": 270
+    }
+  }
+}

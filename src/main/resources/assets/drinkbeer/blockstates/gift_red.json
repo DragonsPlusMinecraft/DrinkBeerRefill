@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "facing=north,type=1": {
+      "model": "drinkbeer:block/gift_red1"
+    },
+    "facing=east,type=1": {
+      "model": "drinkbeer:block/gift_red1",
+      "y": 90
+    },
+    "facing=south,type=1": {
+      "model": "drinkbeer:block/gift_red1",
+      "y": 180
+    },
+    "facing=west,type=1": {
+      "model": "drinkbeer:block/gift_red1",
+      "y": 270
+    },
+    "facing=north,type=2": {
+      "model": "drinkbeer:block/gift_red2"
+    },
+    "facing=east,type=2": {
+      "model": "drinkbeer:block/gift_red2",
+      "y": 90
+    },
+    "facing=south,type=2": {
+      "model": "drinkbeer:block/gift_red2",
+      "y": 180
+    },
+    "facing=west,type=2": {
+      "model": "drinkbeer:block/gift_red2",
+      "y": 270
+    },
+    "facing=north,type=3": {
+      "model": "drinkbeer:block/gift_red3"
+    },
+    "facing=east,type=3": {
+      "model": "drinkbeer:block/gift_red3",
+      "y": 90
+    },
+    "facing=south,type=3": {
+      "model": "drinkbeer:block/gift_red3",
+      "y": 180
+    },
+    "facing=west,type=3": {
+      "model": "drinkbeer:block/gift_red3",
+      "y": 270
+    },
+    "facing=north,type=4": {
+      "model": "drinkbeer:block/gift_red4"
+    },
+    "facing=east,type=4": {
+      "model": "drinkbeer:block/gift_red4",
+      "y": 90
+    },
+    "facing=south,type=4": {
+      "model": "drinkbeer:block/gift_red4",
+      "y": 180
+    },
+    "facing=west,type=4": {
+      "model": "drinkbeer:block/gift_red4",
+      "y": 270
+    }
+  }
+}

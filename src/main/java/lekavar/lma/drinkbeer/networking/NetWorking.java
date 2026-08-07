@@ -12,7 +12,7 @@ public class NetWorking {
     public static void init(RegisterPayloadHandlersEvent event) {
         // Sets the current network version
         final PayloadRegistrar registrar = event.registrar("1");
-        registrar.playBidirectional(
+        registrar.playToServer(
                 RefreshTradeBoxPayload.TYPE,
                 RefreshTradeBoxPayload.STREAM_CODEC,
                 new MainThreadPayloadHandler<>(

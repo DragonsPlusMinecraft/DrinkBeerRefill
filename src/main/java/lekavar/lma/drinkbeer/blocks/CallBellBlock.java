@@ -23,9 +23,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-import java.util.Random;
-
-
 public class CallBellBlock extends Block {
 
     public final static VoxelShape SHAPE = Block.box(5.5f, 0, 5.5f, 10.5f, 4, 10.5f);
@@ -56,7 +53,7 @@ public class CallBellBlock extends Block {
             }
         } else {
             double x = (double) pos.getX() + 0.5D;
-            double y = (double) pos.getY() + 0.2D + new Random().nextDouble() / 4;
+            double y = (double) pos.getY() + 0.2D + world.getRandom().nextDouble() / 4;
             double z = (double) pos.getZ() + 0.5D;
             if (state.getBlock() == BlockRegistry.IRON_CALL_BELL.get()) {
                 world.addParticle(ParticleTypes.NOTE, x, y, z, 0.0D, 0.0D, 0.0D);

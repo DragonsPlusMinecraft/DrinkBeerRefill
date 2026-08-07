@@ -24,6 +24,10 @@ public class SoundEventRegistry {
     public static final Supplier<SoundEvent> BARTENDING_TABLE_CLOSE = register("bartending_table_close");
     public static final Supplier<SoundEvent> TRADEBOX_OPEN = register("tradebox_open");
     public static final Supplier<SoundEvent> TRADEBOX_CLOSE = register("tradebox_close");
+    public static final Supplier<SoundEvent> GIFT_OPEN = register("gift_open_sound");
+    public static final Supplier<SoundEvent> NEIGH_1 = register("neigh1_sound");
+    public static final Supplier<SoundEvent> NEIGH_2 = register("neigh2_sound");
+    public static final Supplier<SoundEvent> BELL = register("bell_sound");
 
 
     private static Supplier<SoundEvent> register(String name) {

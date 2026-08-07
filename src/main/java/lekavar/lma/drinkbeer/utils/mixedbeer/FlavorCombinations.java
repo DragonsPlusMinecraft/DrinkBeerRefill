@@ -30,7 +30,7 @@ public enum FlavorCombinations {
     }
 
     public static List<FlavorCombinations> getFlavorCombinationList() {
-        List<FlavorCombinations> flavorCombinationList = new ArrayList();
+        List<FlavorCombinations> flavorCombinationList = new ArrayList<>();
         Collections.addAll(flavorCombinationList, values());
         return flavorCombinationList;
     }

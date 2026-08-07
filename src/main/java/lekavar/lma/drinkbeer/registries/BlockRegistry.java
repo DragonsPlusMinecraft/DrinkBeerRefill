@@ -21,6 +21,19 @@ public class BlockRegistry {
     public static final Supplier<Block> GOLDEN_CALL_BELL = BLOCKS.register("golden_call_bell", CallBellBlock::new);
     public static final Supplier<Block> LEKAS_CALL_BELL = BLOCKS.register("lekas_call_bell", CallBellBlock::new);
 
+    // Authorized upstream 4.0 holiday content
+    public static final Supplier<Block> GIFT_RED = BLOCKS.register("gift_red", GiftBlock::new);
+    public static final Supplier<Block> GIFT_BLUE = BLOCKS.register("gift_blue", GiftBlock::new);
+    public static final Supplier<Block> GIFT_GREEN = BLOCKS.register("gift_green", GiftBlock::new);
+    public static final Supplier<Block> GIFT_WHITE = BLOCKS.register("gift_white", GiftBlock::new);
+    public static final Supplier<Block> COLORED_LIGHTS = BLOCKS.register("colored_lights", () -> new ColoredLightsBlock(false));
+    public static final Supplier<Block> SIDE_COLORED_LIGHTS = BLOCKS.register("side_colored_lights", () -> new ColoredLightsBlock(true));
+    public static final Supplier<Block> STAR_OF_BETHLEHEM = BLOCKS.register("star_of_bethlehem", () -> new StarOfBethlehemBlock(false));
+    public static final Supplier<Block> THE_GREAT_STAR_OF_BETHLEHEM = BLOCKS.register("the_great_star_of_bethlehem", () -> new StarOfBethlehemBlock(true));
+    public static final Supplier<Block> HORSE_MODEL_1 = BLOCKS.register("horse_model_1", () -> new HorseModelBlock(false));
+    public static final Supplier<Block> HORSE_MODEL_2 = BLOCKS.register("horse_model_2", () -> new HorseModelBlock(false));
+    public static final Supplier<Block> HORSE_MODEL_3 = BLOCKS.register("horse_model_3", () -> new HorseModelBlock(true));
+
     public static final Supplier<Block> RECIPE_BOARD_BEER_MUG = BLOCKS.register("recipe_board_beer_mug", () -> new RecipeBoardBlock(true));
     public static final Supplier<Block> RECIPE_BOARD_BEER_MUG_BLAZE_STOUT = BLOCKS.register("recipe_board_beer_mug_blaze_stout", () -> new RecipeBoardBlock(true));
     public static final Supplier<Block> RECIPE_BOARD_BEER_MUG_BLAZE_MILK_STOUT = BLOCKS.register("recipe_board_beer_mug_blaze_milk_stout", () -> new RecipeBoardBlock(true));

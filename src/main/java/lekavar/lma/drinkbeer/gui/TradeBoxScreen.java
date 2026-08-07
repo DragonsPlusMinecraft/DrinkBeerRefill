@@ -2,25 +2,18 @@ package lekavar.lma.drinkbeer.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import lekavar.lma.drinkbeer.DrinkBeer;
-import lekavar.lma.drinkbeer.blocks.TradeboxBlock;
 import lekavar.lma.drinkbeer.managers.TradeBoxManager;
 import lekavar.lma.drinkbeer.networking.NetWorking;
 import lekavar.lma.drinkbeer.utils.Convert;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.core.BlockPos;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 
 import java.awt.*;
 
@@ -93,26 +86,9 @@ public class TradeBoxScreen extends AbstractContainerScreen<TradeBoxMenu> {
         int y = (height - getYSize()) / 2;
         this.addRenderableWidget(new ImageButton(x + 156, y + 5, 16, 16, REFRESH_WIDGET_SPRITE, (buttonWidget) -> {
             if (container.isTrading()) {
-                BlockPos pos = getHitTradeBoxBlockPos();
-                if (pos != null)
-                    NetWorking.sendRefreshTradebox(pos);
+                NetWorking.sendRefreshTradebox(container.getBlockPos());
             }
         }));
         super.init();
-    }
-
-    private BlockPos getHitTradeBoxBlockPos() {
-        Minecraft client = Minecraft.getInstance();
-        HitResult hit = client.hitResult;
-        if (hit.getType().equals(HitResult.Type.BLOCK)) {
-            BlockHitResult blockHit = (BlockHitResult) hit;
-            BlockPos blockPos = blockHit.getBlockPos();
-            BlockState blockState = client.level.getBlockState(blockPos);
-            Block block = blockState.getBlock();
-            if (block instanceof TradeboxBlock) {
-                return blockPos;
-            }
-        }
-        return null;
     }
 }

@@ -66,7 +66,6 @@ public class TradeMission {
 
         //Generate locationId
         locationId = locationId == Locations.EMPTY_LOCATION.getId() ? Locations.genRandomLocationId() : locationId;
-        int finalLocationId = locationId;
         //Generate residentId
         int residentId = Residents.genRandomResidentId(locationId);
 
@@ -81,10 +80,8 @@ public class TradeMission {
         //Generate goodTolocationList
         List<Good> goodToLocationList = new ArrayList<>();
         IntStream.range(0, goodToLocationNum).forEach(i -> {
-            Good selectedGood = selectRandomGood(basicGoodToLocationList, Good.TO);
-            if (selectedGood == null) {
-                System.out.println("Has no good to " + Locations.byId(finalLocationId).getName() + "-" + Residents.byId(residentId).getName() + "?");
-            } else {
+            Good selectedGood = selectRandomGood(basicGoodToLocationList, Good.TO, random);
+            if (selectedGood != null) {
                 goodToLocationList.add(selectedGood);
             }
         });
@@ -96,10 +93,8 @@ public class TradeMission {
         //Generate goodFromlocationList
         List<Good> goodFromLocationList = new ArrayList<>();
         IntStream.range(0, goodFromLocationNum).forEach(i -> {
-            Good selectedGood = selectRandomGood(basicGoodFromLocationList, Good.FROM);
-            if (selectedGood == null) {
-                System.out.println("Has no good from " + Locations.byId(finalLocationId).getName() + "-" + Residents.byId(residentId).getName() + "?");
-            } else {
+            Good selectedGood = selectRandomGood(basicGoodFromLocationList, Good.FROM, random);
+            if (selectedGood != null) {
                 goodFromLocationList.add(selectedGood);
             }
         });
@@ -113,7 +108,7 @@ public class TradeMission {
         return tradeMission;
     }
 
-    private static Good selectRandomGood(List<Good> goodList, int fromOrToLocation) {
+    private static Good selectRandomGood(List<Good> goodList, int fromOrToLocation, Random random) {
         Good good = new Good();
 
         //Generate rarity
@@ -127,9 +122,9 @@ public class TradeMission {
         if (goods.isEmpty()) {
             return null;
         }
-        good.copy(goods.get(new Random().nextInt(goods.size())));
+        good.copy(goods.get(random.nextInt(goods.size())));
         //Generate good count
-        good.setCount(good.getMinCount() + new Random().nextInt(good.getMaxCount() - good.getMinCount() + 1));
+        good.setCount(good.getMinCount() + random.nextInt(good.getMaxCount() - good.getMinCount() + 1));
 
         return good;
     }

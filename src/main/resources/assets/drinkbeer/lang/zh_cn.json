@@ -1,4 +1,15 @@
 {
+  "block.drinkbeer.gift_red": "红色礼物",
+  "block.drinkbeer.gift_blue": "蓝色礼物",
+  "block.drinkbeer.gift_green": "绿色礼物",
+  "block.drinkbeer.gift_white": "白色礼物",
+  "block.drinkbeer.colored_lights": "彩灯",
+  "block.drinkbeer.side_colored_lights": "侧边彩灯",
+  "block.drinkbeer.star_of_bethlehem": "伯利恒之星",
+  "block.drinkbeer.the_great_star_of_bethlehem": "大伯利恒之星",
+  "block.drinkbeer.horse_model_1": "木马模型",
+  "block.drinkbeer.horse_model_2": "木马模型",
+  "block.drinkbeer.horse_model_3": "节日木马模型",
   "itemGroup.drinkbeer.beer": "啤酒",
   "itemGroup.drinkbeer.general": "喝啤酒啦通用方块",
 
@@ -42,6 +53,7 @@
   "item.drinkbeer.beer_mug_frothy_pink_eggnog.tooltip": "伤害吸收 2:00",
 
   "drinkbeer.restores_hunger": "饥饿值回复: ",
+  "drinkbeer.restores_saturation": "饱和度回复: ",
   "effect.drinkbeer.drunk_frost_walker": "醉酒的冰霜行者",
   "effect.drinkbeer.drunk": "醉酒",
 
@@ -118,5 +130,12 @@
 
   "config.jade.plugin_drinkbeer.beer_barrel": "啤酒桶",
   "config.jade.plugin_drinkbeer.trade_box": "贸易箱",
-  "config.jade.plugin_drinkbeer.mixed_beer": "风味啤酒"
+  "config.jade.plugin_drinkbeer.mixed_beer": "风味啤酒",
+
+  "message.drinkbeer.bartending_table.drawer_closed": "请先打开抽屉再加入香料。",
+  "message.drinkbeer.bartending_table.use_drawer": "请从打开的抽屉处加入香料。",
+  "message.drinkbeer.bartending_table.occupied": "调酒桌上已经放有啤酒。",
+  "message.drinkbeer.bartending_table.no_beer": "请先在调酒桌上放一杯啤酒。",
+  "message.drinkbeer.bartending_table.spice_full": "这杯啤酒已经加入了三份香料。",
+  "message.drinkbeer.bartending_table.invalid_item": "该物品不能用于调酒桌。"
 }

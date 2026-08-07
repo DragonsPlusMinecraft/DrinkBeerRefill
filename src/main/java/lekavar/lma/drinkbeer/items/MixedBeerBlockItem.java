@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.List;
+import java.util.Locale;
 
 public class MixedBeerBlockItem extends BeerBlockItem {
     public MixedBeerBlockItem(Block block) {
@@ -50,8 +51,11 @@ public class MixedBeerBlockItem extends BeerBlockItem {
         }
         //Base food level
         if (beerId > Beers.EMPTY_BEER_ID) {
-            String hunger = Integer.toString(beerItem.getFoodProperties(stack,null).nutrition());
+            FoodProperties foodProperties = beerItem.getFoodProperties(stack, null);
+            String hunger = Integer.toString(foodProperties.nutrition());
             tooltip.add(Component.translatable("drinkbeer.restores_hunger").setStyle(Style.EMPTY.applyFormat(ChatFormatting.BLUE)).append(hunger));
+            tooltip.add(Component.translatable("drinkbeer.restores_saturation").setStyle(Style.EMPTY.applyFormat(ChatFormatting.BLUE))
+                    .append(String.format(Locale.ROOT, "%.1f", foodProperties.saturation())));
         }
 
         //Flavor title
@@ -117,19 +121,21 @@ public class MixedBeerBlockItem extends BeerBlockItem {
     }
 
     public static int getBeerId(ItemStack itemStack) {
-        return itemStack.get(DataComponentTypeRegistry.BEER_ID_COMPONENT);
+        return MixedBeerManager.getBeerId(itemStack);
     }
 
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
-        //Apply mixed beer
+        // Vanilla consumption may clear the live stack before our custom data is read.
+        ItemStack consumedBeer = stack.copy();
+        ItemStack result = super.finishUsingItem(stack, world, user);
         if (!world.isClientSide()) {
-            MixedBeerManager.useMixedBeer(stack, world, user);
+            // Apply mixed beer and mutate the inventory only on the logical server.
+            MixedBeerManager.useMixedBeer(consumedBeer, world, user);
+            giveEmptyMugBack(user);
         }
-        //Give empty mug back
-        giveEmptyMugBack(user);
 
-        return super.finishUsingItem(stack, world, user);
+        return result;
     }
 
 

@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "facing=north,half=lower": {
+      "model": "drinkbeer:block/horse_model_2"
+    },
+    "facing=east,half=lower": {
+      "model": "drinkbeer:block/horse_model_2",
+      "y": 90
+    },
+    "facing=south,half=lower": {
+      "model": "drinkbeer:block/horse_model_2",
+      "y": 180
+    },
+    "facing=west,half=lower": {
+      "model": "drinkbeer:block/horse_model_2",
+      "y": 270
+    },
+    "facing=north,half=upper": {
+      "model": "drinkbeer:block/horse_model_empty"
+    },
+    "facing=east,half=upper": {
+      "model": "drinkbeer:block/horse_model_empty",
+      "y": 90
+    },
+    "facing=south,half=upper": {
+      "model": "drinkbeer:block/horse_model_empty",
+      "y": 180
+    },
+    "facing=west,half=upper": {
+      "model": "drinkbeer:block/horse_model_empty",
+      "y": 270
+    }
+  }
+}

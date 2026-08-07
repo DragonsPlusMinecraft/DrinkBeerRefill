@@ -45,7 +45,7 @@ public class DrunkFrostWalkerStatusEffect extends MobEffect {
         if (entity instanceof Player && !entity.level().isClientSide()) {
             REPLACE_EFFECT.apply((ServerLevel) entity.level(), 1, null, entity, entity.position());
         }
-        return false;
+        return true;
     }
 
     @Override
