@@ -1,0 +1,17 @@
+name: Feature request
+description: Suggest a feature or compatibility improvement
+title: "[Suggestion]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for sharing your idea for DrinkBeer Refill!
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: What would you like us to add or change, and how would it help players?
+    validations:
+      required: true
