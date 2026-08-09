@@ -16,7 +16,7 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
@@ -87,7 +87,7 @@ public class JEIBrewingRecipeCategory implements IRecipeCategory<BrewingRecipe> 
     }
 
     @Override
-    public void draw(BrewingRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+    public void draw(BrewingRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         background.draw(guiGraphics, 0, 0);
         IDrawable drawable = guiHelper.createDrawableItemStack(recipe.getBeerCup());
         drawable.draw(guiGraphics, 73, 40);

@@ -8,7 +8,7 @@ import lekavar.lma.drinkbeer.gui.BeerBarrelScreen;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -42,7 +42,7 @@ public final class FabricClientSmokeTest implements FabricClientGameTest {
         Path evidenceDirectory = Path.of("client-test-evidence").toAbsolutePath();
         writeLifecycle(evidenceDirectory, "probe_started");
         AtomicLong renderedWorldFrames = new AtomicLong();
-        context.runOnClient(client -> WorldRenderEvents.END_MAIN.register(renderContext -> {
+        context.runOnClient(client -> LevelRenderEvents.END_MAIN.register(renderContext -> {
             if (client.level != null && client.player != null) {
                 renderedWorldFrames.incrementAndGet();
             }
@@ -78,7 +78,7 @@ public final class FabricClientSmokeTest implements FabricClientGameTest {
             singleplayer.getServer().runCommand("execute at @p run setblock ~-4 ~ ~3 drinkbeer:gift_red");
             singleplayer.getServer().runCommand("execute at @p run tp @p ~ ~ ~-1.5 0 18");
             context.waitTicks(20);
-            singleplayer.getClientWorld().waitForChunksRender();
+            singleplayer.getClientLevel().waitForChunksRender();
 
             context.waitFor(client -> client.level != null
                     && client.player != null

@@ -182,7 +182,7 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     private void completeBrewing(BrewingRecipe recipe) {
-        ItemStack result = recipe.assemble(brewingInventory, level.registryAccess());
+        ItemStack result = recipe.assemble(brewingInventory);
         if (result.isEmpty()) {
             statusCode = STATUS_WAITING;
             updateBE();

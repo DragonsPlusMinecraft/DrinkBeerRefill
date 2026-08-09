@@ -1,5 +1,6 @@
 package lekavar.lma.drinkbeer.utils.gift;
 
+import lekavar.lma.drinkbeer.RegistryComponentTest;
 import lekavar.lma.drinkbeer.registries.ItemRegistry;
 import lekavar.lma.drinkbeer.utils.beer.Beers;
 import lekavar.lma.drinkbeer.utils.mixedbeer.Spices;
@@ -12,7 +13,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class GiftRewardsTest {
+class GiftRewardsTest extends RegistryComponentTest {
     @Test
     void rewardPoolMatchesAllTwentySevenUpstreamEntries() {
         assertEquals(27, GiftRewards.rewardCount());

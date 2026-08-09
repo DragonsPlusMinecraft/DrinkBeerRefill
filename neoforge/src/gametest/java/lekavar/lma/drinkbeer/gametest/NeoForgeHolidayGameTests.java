@@ -75,7 +75,7 @@ public final class NeoForgeHolidayGameTests {
 
     @SubscribeEvent
     public static void registerGameTests(RegisterGameTestsEvent event) {
-        Holder<TestEnvironmentDefinition> environment = event.registerEnvironment(
+        Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(
                 ENVIRONMENT,
                 new TestEnvironmentDefinition.AllOf(List.of())
         );
@@ -93,11 +93,11 @@ public final class NeoForgeHolidayGameTests {
 
     private static void registerTest(
             RegisterGameTestsEvent event,
-            Holder<TestEnvironmentDefinition> environment,
+            Holder<TestEnvironmentDefinition<?>> environment,
             DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> function,
             int maxTicks
     ) {
-        TestData<Holder<TestEnvironmentDefinition>> data = new TestData<>(
+        TestData<Holder<TestEnvironmentDefinition<?>>> data = new TestData<>(
                 environment,
                 STRUCTURE,
                 maxTicks,

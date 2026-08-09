@@ -9,18 +9,15 @@ import lekavar.lma.drinkbeer.gui.TradeBoxScreen;
 import lekavar.lma.drinkbeer.networking.RefreshTradeBoxPayload;
 import lekavar.lma.drinkbeer.platform.ClientPlatformHooks;
 import lekavar.lma.drinkbeer.registries.BlockEntityRegistry;
-import lekavar.lma.drinkbeer.registries.BlockRegistry;
 import lekavar.lma.drinkbeer.registries.MenuTypeRegistry;
 import lekavar.lma.drinkbeer.registries.ParticleTypeRegistry;
 import lekavar.lma.drinkbeer.registries.RecipeRegistry;
 import mezz.jei.common.Internal;
-import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
+import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.particle.FlameParticle;
 import net.minecraft.client.particle.HeartParticle;
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.resources.Identifier;
@@ -35,14 +32,6 @@ public final class FabricClientPlatform implements ClientPlatformHooks {
                 .map(RecipeHolder::value)
                 .toList());
 
-        BlockRenderLayerMap.putBlocks(
-                ChunkSectionLayer.CUTOUT,
-                BlockRegistry.COLORED_LIGHTS.get(),
-                BlockRegistry.SIDE_COLORED_LIGHTS.get(),
-                BlockRegistry.STAR_OF_BETHLEHEM.get(),
-                BlockRegistry.THE_GREAT_STAR_OF_BETHLEHEM.get()
-        );
-
         MenuScreens.register(MenuTypeRegistry.beerBarrelContainer.get(), BeerBarrelScreen::new);
         MenuScreens.register(MenuTypeRegistry.tradeBoxContainer.get(), TradeBoxScreen::new);
 
@@ -55,11 +44,11 @@ public final class FabricClientPlatform implements ClientPlatformHooks {
                 BartendingTableBlockEntityRenderer::new
         );
 
-        ParticleFactoryRegistry.getInstance().register(
+        ParticleProviderRegistry.getInstance().register(
                 (SimpleParticleType) ParticleTypeRegistry.MIXED_BEER_DEFAULT.get(),
                 FlameParticle.Provider::new
         );
-        ParticleFactoryRegistry.getInstance().register(
+        ParticleProviderRegistry.getInstance().register(
                 (SimpleParticleType) ParticleTypeRegistry.CALL_BELL_TINKLE_PAW.get(),
                 HeartParticle.AngryVillagerProvider::new
         );

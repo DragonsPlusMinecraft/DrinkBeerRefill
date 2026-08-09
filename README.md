@@ -4,11 +4,11 @@ DrinkBeer Refill is a community revival of **Drink Beer**, bringing placeable dr
 
 This branch targets:
 
-- Minecraft 1.21.11
-- Fabric Loader 0.19.3 with Fabric API 0.141.6+1.21.11, or NeoForge 21.11.45
-- Java 21
+- Minecraft 26.1.2
+- Fabric Loader 0.19.3 with Fabric API 0.155.2+26.1.2, or NeoForge 26.1.2.94
+- Java 25
 
-The `1.4.0-beta.3` line updates both native loader builds to Minecraft 1.21.11 while preserving the authorized upstream 4.0 holiday content, gameplay, safe automation, and registry IDs.
+The `1.4.0-beta.3` line updates both native loader builds to Minecraft 26.1.2 while preserving the authorized upstream 4.0 holiday content, gameplay, safe automation, and registry IDs.
 
 Each Minecraft-version branch is independent. Cross-version world upgrades are not supported or tested; back up a world before opening it with a different Minecraft version. Within this branch, Fabric and NeoForge use the same gameplay IDs and are tested against the same-version cross-loader smoke world.
 
@@ -60,7 +60,7 @@ JEI integration displays brewing recipes and required brewing time. The mod itse
 
 ## Development
 
-Build and run the non-graphical regression suite with Java 21:
+Build and run the non-graphical regression suite with Java 25:
 
 ```text
 ./gradlew verifyUnit verifyServer
@@ -74,7 +74,7 @@ Run the complete local release gate with a graphical desktop available:
 
 `verifyRelease` starts real Fabric and NeoForge clients in isolated `build` directories, enters and renders a test world for at least 15 seconds/200 frames, opens the keg GUI and JEI recipes, saves screenshots and JSON evidence, exits normally, checks the same-version Fabric-to-NeoForge world round trip, inspects the release JARs, and writes SHA-256 checksums. It never uses the user's `.minecraft` directory or existing saves.
 
-The project is split into `common`, `fabric`, and `neoforge` modules. Shared JUnit and GameTest scenarios run in both loaders. Fabric Loom 1.17.19 and Gradle 9.5.1 are used on this branch because JEI 27.22.0.65 was built with Loom 1.17.12 and is rejected by Loom 1.14.10 at configuration time.
+The project is split into `common`, `fabric`, and `neoforge` modules. Shared JUnit and GameTest scenarios run in both loaders. This branch uses Fabric Loom 1.15.5 and Gradle 9.4.0. Minecraft 26.1 ships an unobfuscated development namespace, so this branch deliberately has no mappings/Parchment dependency and publishes the ordinary loader JARs.
 
 ## Authors and license
 

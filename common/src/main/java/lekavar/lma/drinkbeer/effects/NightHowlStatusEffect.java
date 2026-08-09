@@ -47,7 +47,7 @@ public class NightHowlStatusEffect {
     }
 
     public static int getMoonPhase(Level world) {
-        long timeOfDay = world.getDayTime();
+        long timeOfDay = world.getOverworldClockTime();
         return (int) (timeOfDay / 24000L % 8L + 8L) % 8;
     }
 }

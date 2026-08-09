@@ -12,8 +12,8 @@ import lekavar.lma.drinkbeer.platform.RegistryHandle;
 import lekavar.lma.drinkbeer.registries.BlockEntityRegistry;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuType;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.core.BlockPos;
@@ -60,7 +60,7 @@ public final class FabricPlatform implements PlatformHooks {
             String path,
             ExtendedMenuFactory<T> factory
     ) {
-        return register(BuiltInRegistries.MENU, path, ignored -> new ExtendedScreenHandlerType<>(
+        return register(BuiltInRegistries.MENU, path, ignored -> new ExtendedMenuType<>(
                 (containerId, inventory, pos) -> factory.create(containerId, inventory, pos),
                 BlockPos.STREAM_CODEC
         ));
@@ -84,7 +84,7 @@ public final class FabricPlatform implements PlatformHooks {
 
     @Override
     public void registerNetworking() {
-        PayloadTypeRegistry.playC2S().register(RefreshTradeBoxPayload.TYPE, RefreshTradeBoxPayload.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(RefreshTradeBoxPayload.TYPE, RefreshTradeBoxPayload.STREAM_CODEC);
         ServerPlayNetworking.registerGlobalReceiver(
                 RefreshTradeBoxPayload.TYPE,
                 (payload, context) -> ServerPayloadHandler.handlePayload(payload, context.player())
@@ -110,7 +110,7 @@ public final class FabricPlatform implements PlatformHooks {
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return;
         }
-        serverPlayer.openMenu(new ExtendedScreenHandlerFactory<BlockPos>() {
+        serverPlayer.openMenu(new ExtendedMenuProvider<BlockPos>() {
             @Override
             public BlockPos getScreenOpeningData(ServerPlayer ignored) {
                 return pos;

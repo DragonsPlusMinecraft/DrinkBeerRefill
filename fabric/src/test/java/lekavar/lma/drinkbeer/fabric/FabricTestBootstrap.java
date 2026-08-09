@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * Starts the minimal Minecraft and mod lifecycle required by the shared unit
@@ -42,7 +43,32 @@ public final class FabricTestBootstrap implements BeforeAllCallback {
             }
             Method bootStrap = bootstrap.getMethod("bootStrap");
             bootStrap.invoke(null);
+            bindDataComponents(knotLoader);
             initialized = true;
+        }
+    }
+
+    /**
+     * Since 26.1, item defaults are bound during resource loading rather than
+     * registry construction. Loader-backed unit tests do not start a resource
+     * reload, so reproduce that lifecycle step with the vanilla registry
+     * lookup after both vanilla and mod entries have been registered.
+     */
+    private static void bindDataComponents(ClassLoader knotLoader) throws ReflectiveOperationException {
+        Class<?> vanillaRegistries = Class.forName(
+                "net.minecraft.data.registries.VanillaRegistries", true, knotLoader);
+        Object lookup = vanillaRegistries.getMethod("createLookup").invoke(null);
+        Class<?> provider = Class.forName("net.minecraft.core.HolderLookup$Provider", true, knotLoader);
+        Class<?> builtInRegistries = Class.forName(
+                "net.minecraft.core.registries.BuiltInRegistries", true, knotLoader);
+        Object initializers = builtInRegistries.getField("DATA_COMPONENT_INITIALIZERS").get(null);
+        List<?> pending = (List<?>) initializers.getClass().getMethod("build", provider)
+                .invoke(initializers, lookup);
+        Class<?> pendingComponents = Class.forName(
+                "net.minecraft.core.component.DataComponentInitializers$PendingComponents", true, knotLoader);
+        Method apply = pendingComponents.getMethod("apply");
+        for (Object components : pending) {
+            apply.invoke(components);
         }
     }
 

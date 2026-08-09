@@ -1,5 +1,6 @@
 package lekavar.lma.drinkbeer.recipes;
 
+import lekavar.lma.drinkbeer.RegistryComponentTest;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -11,7 +12,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class BrewingRecipeTest {
+class BrewingRecipeTest extends RegistryComponentTest {
     private static BrewingRecipe recipe() {
         NonNullList<Ingredient> ingredients = NonNullList.create();
         ingredients.add(Ingredient.of(Items.WHEAT));

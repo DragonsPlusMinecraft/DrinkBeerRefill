@@ -19,7 +19,10 @@ public class RecipeRegistry {
         }
     });
     private static final RegistryProvider<RecipeSerializer<?>> RECIPE_SERIALIZERS = Registration.provider(BuiltInRegistries.RECIPE_SERIALIZER);
-    public static final Supplier<RecipeSerializer<BrewingRecipe>> RECIPE_SERIALIZER_BREWING = RECIPE_SERIALIZERS.register("brewing", BrewingRecipe.Serializer::new);
+    public static final Supplier<RecipeSerializer<BrewingRecipe>> RECIPE_SERIALIZER_BREWING = RECIPE_SERIALIZERS.register(
+            "brewing",
+            () -> new RecipeSerializer<>(BrewingRecipe.Serializer.CODEC, BrewingRecipe.Serializer.STREAM_CODEC)
+    );
 
     public static void init() {
     }

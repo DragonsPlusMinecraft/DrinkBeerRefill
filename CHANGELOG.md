@@ -1,3 +1,19 @@
+## Drink Beer Refill 1.4.0-beta.3 (Minecraft 26.1.2)
+
+### Changed
+
+- Updated the independent Fabric and NeoForge builds to Minecraft 26.1.2, Fabric API 0.155.2+26.1.2, NeoForge 26.1.2.94, NeoForm `26.1.2-1`, and JEI 29.21.0.67.
+- Switched the toolchain to Java 25, Fabric Loom 1.15.5, and Gradle 9.4.0.
+- Migrated the Fabric build to Minecraft's unobfuscated 26.1 development namespace, removed mappings/Parchment, replaced remap-only dependency configurations with standard Gradle configurations, and now publish ordinary JARs.
+- Migrated menus, payload registration, particles, render-state extraction, recipe templates, data-component initialization, and NeoForge GameTest APIs without changing gameplay or registered IDs.
+- Kept every Minecraft-version branch independent. Cross-Minecraft-version worlds and upgrade chains are intentionally neither supported nor tested; users should back up worlds before changing Minecraft versions.
+
+### Verification
+
+- Passed the loader-backed JUnit suites, assembly checks, and all 11 Fabric plus 11 NeoForge server GameTests.
+- Passed real visible Fabric and NeoForge OpenGL clients. Both entered the isolated 26.1.2 world, rendered for at least 200 frames and 15 seconds, opened the keg and all 9 JEI recipes, captured world/F3/GUI/JEI evidence, saved, and exited normally.
+- Passed the same-Minecraft-version Fabric-to-NeoForge world round trip, including 26.1's overworld region layout and preserved per-world configuration.
+
 ## Drink Beer Refill 1.4.0-beta.3 (Minecraft 1.21.11)
 
 ### Changed

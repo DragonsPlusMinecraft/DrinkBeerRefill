@@ -12,6 +12,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
@@ -28,11 +29,17 @@ import java.util.List;
 
 public class BrewingRecipe implements Recipe<IBrewingInventory> {
     private final NonNullList<Ingredient> input;
-    private final ItemStack cup;
+    private final ItemStackTemplate cup;
     private final int brewingTime;
-    private final ItemStack result;
+    private final ItemStackTemplate result;
 
     public BrewingRecipe(NonNullList<Ingredient> input, ItemStack cup, int brewingTime, ItemStack result) {
+        this(input, ItemStackTemplate.fromNonEmptyStack(cup), brewingTime,
+                ItemStackTemplate.fromNonEmptyStack(result));
+    }
+
+    private BrewingRecipe(NonNullList<Ingredient> input, ItemStackTemplate cup,
+                          int brewingTime, ItemStackTemplate result) {
         this.input = input;
         this.cup = cup;
         this.brewingTime = brewingTime;
@@ -54,11 +61,11 @@ public class BrewingRecipe implements Recipe<IBrewingInventory> {
 
     @Deprecated
     public ItemStack geBeerCup() {
-        return cup.copy();
+        return cup.create();
     }
 
     public ItemStack getBeerCup() {
-        return cup.copy();
+        return cup.create();
     }
 
     @Override
@@ -75,8 +82,8 @@ public class BrewingRecipe implements Recipe<IBrewingInventory> {
     }
 
     @Override
-    public ItemStack assemble(IBrewingInventory iBrewingInventory, HolderLookup.Provider provider) {
-        return result.copy();
+    public ItemStack assemble(IBrewingInventory iBrewingInventory) {
+        return result.create();
     }
 
 
@@ -99,7 +106,7 @@ public class BrewingRecipe implements Recipe<IBrewingInventory> {
      */
     public ItemStack getResultItem(HolderLookup.Provider provider) {
         //For Safety, I use #copy
-        return result.copy();
+        return result.create();
     }
 
 
@@ -107,12 +114,22 @@ public class BrewingRecipe implements Recipe<IBrewingInventory> {
     // See JEIBrewingRecipe#setRecipe
     public ItemStack getResultItemNoRegistryAccess() {
         //For Safety, I use #copy
-        return result.copy();
+        return result.create();
     }
 
     @Override
     public boolean isSpecial() {
         return true;
+    }
+
+    @Override
+    public boolean showNotification() {
+        return false;
+    }
+
+    @Override
+    public String group() {
+        return "";
     }
 
     @Override
@@ -147,24 +164,34 @@ public class BrewingRecipe implements Recipe<IBrewingInventory> {
     }
 
     public int getRequiredCupCount() {
-        return cup.getCount();
+        return cup.count();
     }
 
     public boolean isCupQualified(IBrewingInventory inventory) {
         ItemStack suppliedCup = inventory.getCup();
-        return ItemStack.isSameItemSameComponents(suppliedCup, cup) && suppliedCup.getCount() >= cup.getCount();
+        ItemStack requiredCup = cup.create();
+        return ItemStack.isSameItemSameComponents(suppliedCup, requiredCup)
+                && suppliedCup.getCount() >= cup.count();
     }
 
     public int getBrewingTime() {
         return brewingTime;
     }
 
-    public static class Serializer implements RecipeSerializer<BrewingRecipe> {
+    private ItemStackTemplate getBeerCupTemplate() {
+        return cup;
+    }
+
+    private ItemStackTemplate getResultTemplate() {
+        return result;
+    }
+
+    public static final class Serializer {
         public static final MapCodec<BrewingRecipe> CODEC = RecordCodecBuilder.mapCodec(ins-> ins.group(
                 DrinkBeerCodes.NON_NULL_LIST_4_INGREDIENT_CODEC.fieldOf("ingredients").forGetter(BrewingRecipe::getIngredients),
-                ItemStack.CODEC.fieldOf("cup").forGetter(BrewingRecipe::getBeerCup),
+                ItemStackTemplate.CODEC.fieldOf("cup").forGetter(BrewingRecipe::getBeerCupTemplate),
                 Codec.intRange(1, Integer.MAX_VALUE).fieldOf("brewing_time").forGetter(BrewingRecipe::getBrewingTime),
-                ItemStack.CODEC.fieldOf("result").forGetter(BrewingRecipe::getResultItemNoRegistryAccess)
+                ItemStackTemplate.CODEC.fieldOf("result").forGetter(BrewingRecipe::getResultTemplate)
                 ).apply(ins,BrewingRecipe::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf,BrewingRecipe> STREAM_CODEC = StreamCodec.of(Serializer::toNetwork,Serializer::fromNetwork);
@@ -176,9 +203,9 @@ public class BrewingRecipe implements Recipe<IBrewingInventory> {
             for (int ingredientIndex = 0; ingredientIndex < i; ingredientIndex++) {
                 ingredients.add(Ingredient.CONTENTS_STREAM_CODEC.decode(packetBuffer));
             }
-            ItemStack cup = ItemStack.STREAM_CODEC.decode(packetBuffer);
+            ItemStackTemplate cup = ItemStackTemplate.STREAM_CODEC.decode(packetBuffer);
             int brewingTime = packetBuffer.readVarInt();
-            ItemStack result = ItemStack.STREAM_CODEC.decode(packetBuffer);
+            ItemStackTemplate result = ItemStackTemplate.STREAM_CODEC.decode(packetBuffer);
             return new BrewingRecipe(ingredients, cup, brewingTime, result);
         }
 
@@ -187,20 +214,13 @@ public class BrewingRecipe implements Recipe<IBrewingInventory> {
             for (Ingredient ingredient : brewingRecipe.input) {
                 Ingredient.CONTENTS_STREAM_CODEC.encode(packetBuffer, ingredient);
             }
-            ItemStack.STREAM_CODEC.encode(packetBuffer, brewingRecipe.cup);
+            ItemStackTemplate.STREAM_CODEC.encode(packetBuffer, brewingRecipe.cup);
             packetBuffer.writeVarInt(brewingRecipe.brewingTime);
-            ItemStack.STREAM_CODEC.encode(packetBuffer, brewingRecipe.result);
+            ItemStackTemplate.STREAM_CODEC.encode(packetBuffer, brewingRecipe.result);
 
         }
 
-        @Override
-        public MapCodec<BrewingRecipe> codec() {
-            return CODEC;
-        }
-
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, BrewingRecipe> streamCodec() {
-            return STREAM_CODEC;
+        private Serializer() {
         }
     }
 }

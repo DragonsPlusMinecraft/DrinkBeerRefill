@@ -1,5 +1,6 @@
 package lekavar.lma.drinkbeer.utils.beer;
 
+import lekavar.lma.drinkbeer.RegistryComponentTest;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.food.FoodProperties;
 import org.junit.jupiter.api.Test;
@@ -12,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class BeerDefinitionsTest {
+class BeerDefinitionsTest extends RegistryComponentTest {
     @Test
     void upstreamBeerIdsAndNutritionAreExact() {
         assertEquals(List.of(1, 2, 3, 4, 5, 6, 7, 8, 9),

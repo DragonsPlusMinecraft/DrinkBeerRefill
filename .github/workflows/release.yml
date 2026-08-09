@@ -34,7 +34,7 @@ jobs:
           test "$actual" = "${{ inputs.local_client_evidence_commit }}"
       - uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '25'
           distribution: temurin
       - uses: gradle/actions/wrapper-validation@v4
       - uses: gradle/actions/setup-gradle@v4
@@ -57,6 +57,8 @@ jobs:
             **/build/reports/
             **/build/test-results/
             **/build/run/**/logs/
+            **/build/run/**/crash-reports/
+            **/build/run/**/hs_err_pid*.log
             **/build/run/**/client-test-evidence/
             **/build/run/**/screenshots/
             build/release/

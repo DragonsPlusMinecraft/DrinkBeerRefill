@@ -1,6 +1,7 @@
 package lekavar.lma.drinkbeer.blocks;
 
 import lekavar.lma.drinkbeer.DrinkBeer;
+import lekavar.lma.drinkbeer.RegistryComponentTest;
 import lekavar.lma.drinkbeer.registries.BlockRegistry;
 import lekavar.lma.drinkbeer.registries.ItemRegistry;
 import lekavar.lma.drinkbeer.registries.SoundEventRegistry;
@@ -16,7 +17,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class HolidayContentTest {
+class HolidayContentTest extends RegistryComponentTest {
     @Test
     void allElevenUpstreamRegistryIdsAreStable() {
         List<Block> blocks = List.of(

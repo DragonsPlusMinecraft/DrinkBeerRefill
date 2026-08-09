@@ -1,5 +1,6 @@
 package lekavar.lma.drinkbeer.managers;
 
+import lekavar.lma.drinkbeer.RegistryComponentTest;
 import lekavar.lma.drinkbeer.blockentities.MixedBeerBlockEntity;
 import lekavar.lma.drinkbeer.registries.BlockRegistry;
 import lekavar.lma.drinkbeer.registries.BlockEntityRegistry;
@@ -15,7 +16,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class MixedBeerManagerTest {
+class MixedBeerManagerTest extends RegistryComponentTest {
     @Test
     void modernComponentsRoundTripAndRejectInvalidSpices() {
         ItemStack stack = MixedBeerManager.genMixedBeerItemStack(4, List.of(1, 7, 15, 99));

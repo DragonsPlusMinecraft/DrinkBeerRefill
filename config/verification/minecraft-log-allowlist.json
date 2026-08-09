@@ -54,6 +54,11 @@
       "pathPattern": "/neoforge/build/run/clientSmoke/logs/latest\\.log$",
       "eventPattern": "Ignoring chat session from Dev due to missing Services public key",
       "reason": "The isolated NeoForge development account has no Mojang services key; single-player world loading and saving are unaffected."
+    },
+    {
+      "pathPattern": "/neoforge/build/run/clientSmoke/logs/latest\\.log$",
+      "eventPattern": "neoforge:pipeline/item_(translucent|cutout)_unlit shader program does not use sampler Sampler2 defined in the pipeline",
+      "reason": "NeoForge 26.1.2.94 defines an unused third sampler in its own two unlit item pipelines. DrinkBeer does not supply these shaders; both affected item layers render correctly in the required world, GUI, JEI, and F3 screenshots."
     }
   ]
 }

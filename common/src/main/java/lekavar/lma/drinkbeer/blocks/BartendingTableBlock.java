@@ -90,7 +90,7 @@ public class BartendingTableBlock extends BaseEntityBlock {
             } else {
                 ItemStack beer = bartendingTableBlockEntity.takeBeer(false);
                 if (beer.isEmpty()) {
-                    player.displayClientMessage(Component.translatable("message.drinkbeer.bartending_table.no_beer"), true);
+                    player.sendOverlayMessage(Component.translatable("message.drinkbeer.bartending_table.no_beer"));
                 } else {
                     ItemStackHelper.giveToPlayer(player, beer);
                     world.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.4f, 1.0f);
@@ -123,7 +123,7 @@ public class BartendingTableBlock extends BaseEntityBlock {
             if (isBeer) {
                 result = bartendingTableBlockEntity.placeBeer(itemStack);
             } else if (!state.getValue(OPENED)) {
-                player.displayClientMessage(Component.translatable("message.drinkbeer.bartending_table.drawer_closed"), true);
+                player.sendOverlayMessage(Component.translatable("message.drinkbeer.bartending_table.drawer_closed"));
                 return InteractionResult.CONSUME;
             } else {
                 result = bartendingTableBlockEntity.putSpice(itemStack);
@@ -160,7 +160,7 @@ public class BartendingTableBlock extends BaseEntityBlock {
             case SPICE_FULL -> "message.drinkbeer.bartending_table.spice_full";
             default -> "message.drinkbeer.bartending_table.invalid_item";
         };
-        player.displayClientMessage(Component.translatable(translationKey), true);
+        player.sendOverlayMessage(Component.translatable(translationKey));
     }
 
     @Override
