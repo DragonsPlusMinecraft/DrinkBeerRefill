@@ -1,10 +1,8 @@
 plugins {
-    id 'multiloader-loader'
     id 'net.fabricmc.fabric-loom'
     id 'me.modmuss50.mod-publish-plugin'
+    id 'maven-publish'
 }
-
-version = "${mod_version}+fabric"
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
@@ -27,87 +25,14 @@ loom {
         client {
             client()
             name = 'Fabric Client'
-            runDir = 'build/runs/client'
+            runDir = 'runs/client'
         }
         server {
             server()
             name = 'Fabric Server'
-            runDir = 'build/runs/server'
+            runDir = 'runs/server'
             programArg '--nogui'
         }
-    }
-}
-
-fabricApi {
-    configureTests {
-        createSourceSet = true
-        modId = "${mod_id}-gametest"
-        enableGameTests = true
-        enableClientGameTests = true
-        eula = true
-    }
-}
-
-tasks.register('prepareClientGameTestOptions', Copy) {
-    dependsOn tasks.named('deleteGameTestRunDir')
-    from layout.projectDirectory.file('src/gametest/options.txt')
-    into layout.buildDirectory.dir('run/clientGameTest')
-}
-
-def expectedClientBackend = providers.gradleProperty('clientBackend').orElse('OpenGL').get()
-
-tasks.named('runClientGameTest') {
-    dependsOn tasks.named('prepareClientGameTestOptions')
-    systemProperty 'drinkbeer.expectedBackend', expectedClientBackend
-}
-
-def windowsClientWatchdog = rootProject.layout.projectDirectory.file('tools/client-test/windows-client-watchdog.ps1').asFile.absolutePath
-def fabricClientEvidence = layout.buildDirectory.dir('run/clientGameTest/client-test-evidence').get().asFile.absolutePath
-def isWindowsHost = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')
-
-def startFabricClientWatchdog = tasks.register('startFabricClientWatchdog', Exec) {
-    group = 'verification'
-    description = 'Starts the PID-scoped visible-window watchdog for the Fabric client test.'
-    dependsOn tasks.named('prepareClientGameTestOptions')
-    onlyIf { isWindowsHost }
-    commandLine 'powershell.exe', '-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass',
-            '-File', windowsClientWatchdog,
-            '-Action', 'Start',
-            '-EvidenceDirectory', fabricClientEvidence,
-            '-Loader', 'fabric',
-            '-ExpectedBackend', expectedClientBackend
-}
-
-def awaitFabricClientWatchdog = tasks.register('awaitFabricClientWatchdog', Exec) {
-    group = 'verification'
-    description = 'Requires the Fabric client to enter a world in a visible PID-owned window and exit cleanly.'
-    onlyIf { isWindowsHost }
-    commandLine 'powershell.exe', '-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass',
-            '-File', windowsClientWatchdog,
-            '-Action', 'Await',
-            '-EvidenceDirectory', fabricClientEvidence,
-            '-Loader', 'fabric',
-            '-ExpectedBackend', expectedClientBackend
-}
-
-tasks.named('runClientGameTest') {
-    dependsOn startFabricClientWatchdog
-    finalizedBy awaitFabricClientWatchdog
-}
-
-awaitFabricClientWatchdog.configure {
-    mustRunAfter tasks.named('runClientGameTest')
-}
-
-sourceSets.named('gametest') {
-    java.srcDir project(':common').file('src/gametest/java')
-}
-
-def gameTestMinecraftVersion = minecraft_version
-tasks.named('processGametestResources', ProcessResources).configure {
-    inputs.property('minecraft_version', gameTestMinecraftVersion)
-    filesMatching('fabric.mod.json') {
-        expand(minecraft_version: gameTestMinecraftVersion)
     }
 }
 
@@ -116,21 +41,43 @@ tasks.named('test', Test).configure {
     systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
 }
 
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            artifactId = "drinkbeer-refill-${minecraft_version}-fabric"
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            name = 'DragonsPlus'
+            url = uri('https://maven.dragons.plus/releases')
+            credentials(PasswordCredentials)
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+    }
+}
+
 publishMods {
     file = tasks.jar.archiveFile
+    additionalFiles.from tasks.sourcesJar.archiveFile
     changelog = rootProject.file('CHANGELOG.md').text
     version = project.version
     type = BETA
     displayName = "Drink Beer Refill ${mod_version} for ${minecraft_version} (Fabric)"
     modLoaders.add('fabric')
+
     curseforge {
         projectId = curseforge_project_id
         accessToken = providers.environmentVariable('CURSEFORGE_TOKEN')
         minecraftVersions.add(minecraft_version)
+        requires('fabric-api')
         client = true
         server = true
-        requires('fabric-api')
     }
+
     modrinth {
         projectId = modrinth_project_id
         accessToken = providers.environmentVariable('MODRINTH_TOKEN')

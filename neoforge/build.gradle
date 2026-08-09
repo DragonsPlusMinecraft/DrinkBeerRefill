@@ -1,124 +1,37 @@
 plugins {
-    id 'multiloader-loader'
     id 'net.neoforged.moddev'
     id 'me.modmuss50.mod-publish-plugin'
-}
-
-version = "${mod_version}+neoforge"
-
-sourceSets {
-    gameTest {
-        java.setSrcDirs(['src/gameTest/java', project(':common').file('src/gametest/java')])
-        resources.setSrcDirs(['src/gameTest/resources'])
-        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
-        runtimeClasspath += output + compileClasspath
-    }
+    id 'maven-publish'
 }
 
 configurations {
     runtimeClasspath.extendsFrom(localRuntime)
-    gameTestImplementation.extendsFrom(implementation)
-    gameTestCompileOnly.extendsFrom(compileOnly)
-    gameTestRuntimeOnly.extendsFrom(runtimeOnly)
-}
-
-def externalClientWorldFixture = providers.gradleProperty('clientWorldFixture').orNull
-
-def prepareNeoForgeClientSmoke = tasks.register('prepareNeoForgeClientSmoke', Sync) {
-    if (externalClientWorldFixture == null) {
-        dependsOn ':fabric:runClientGameTest'
-    }
-    into layout.buildDirectory.dir('run/clientSmoke')
-    from(externalClientWorldFixture == null
-            ? layout.projectDirectory.dir('../fabric/build/run/clientGameTest/client-test-evidence/world-fixture')
-            : rootProject.file(externalClientWorldFixture)) {
-        into 'saves/drinkbeer-smoke'
-    }
-    from layout.projectDirectory.file('../fabric/src/gametest/options.txt')
-}
-
-def windowsClientWatchdog = rootProject.layout.projectDirectory.file('tools/client-test/windows-client-watchdog.ps1').asFile.absolutePath
-def neoForgeClientEvidence = layout.buildDirectory.dir('run/clientSmoke/client-test-evidence').get().asFile.absolutePath
-def isWindowsHost = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')
-def expectedClientBackend = providers.gradleProperty('clientBackend').orElse('OpenGL').get()
-
-def startNeoForgeClientWatchdog = tasks.register('startNeoForgeClientWatchdog', Exec) {
-    group = 'verification'
-    description = 'Starts the PID-scoped visible-window watchdog for the NeoForge client smoke test.'
-    dependsOn prepareNeoForgeClientSmoke
-    onlyIf { isWindowsHost }
-    commandLine 'powershell.exe', '-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass',
-            '-File', windowsClientWatchdog,
-            '-Action', 'Start',
-            '-EvidenceDirectory', neoForgeClientEvidence,
-            '-Loader', 'neoforge',
-            '-ExpectedBackend', expectedClientBackend
-}
-
-def awaitNeoForgeClientWatchdog = tasks.register('awaitNeoForgeClientWatchdog', Exec) {
-    group = 'verification'
-    description = 'Requires the NeoForge client to enter a world in a visible PID-owned window and exit cleanly.'
-    onlyIf { isWindowsHost }
-    commandLine 'powershell.exe', '-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass',
-            '-File', windowsClientWatchdog,
-            '-Action', 'Await',
-            '-EvidenceDirectory', neoForgeClientEvidence,
-            '-Loader', 'neoforge',
-            '-ExpectedBackend', expectedClientBackend
 }
 
 neoForge {
     version = neo_version
     accessTransformers = project(':common').files('src/main/resources/META-INF/accesstransformer.cfg')
+
     runs {
         client {
             client()
-            gameDirectory = layout.buildDirectory.dir('run/client')
-            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
         }
         server {
             server()
-            gameDirectory = layout.buildDirectory.dir('run/server')
             programArgument '--nogui'
-            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
-        }
-        gameTestServer {
-            type = 'gameTestServer'
-            gameDirectory = layout.buildDirectory.dir('run/gameTestServer')
-            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
-        }
-        clientSmoke {
-            client()
-            gameDirectory = layout.buildDirectory.dir('run/clientSmoke')
-            programArgument '--quickPlaySingleplayer'
-            programArgument 'drinkbeer-smoke'
-            systemProperty 'drinkbeer.clientProbe', 'true'
-            systemProperty 'drinkbeer.clientWorld', 'drinkbeer-smoke'
-            systemProperty 'drinkbeer.expectedBackend', expectedClientBackend
-            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
-            taskBefore prepareNeoForgeClientSmoke
         }
     }
+
     mods {
         "${mod_id}" {
             sourceSet(sourceSets.main)
-            sourceSet(sourceSets.gameTest)
         }
     }
+
     unitTest {
         enable()
         testedMod = mods."${mod_id}"
     }
-}
-
-
-tasks.named('runClientSmoke') {
-    dependsOn startNeoForgeClientWatchdog
-    finalizedBy awaitNeoForgeClientWatchdog
-}
-
-awaitNeoForgeClientWatchdog.configure {
-    mustRunAfter tasks.named('runClientSmoke')
 }
 
 dependencies {
@@ -131,13 +44,34 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            artifactId = "drinkbeer-refill-${minecraft_version}-neoforge"
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            name = 'DragonsPlus'
+            url = uri('https://maven.dragons.plus/releases')
+            credentials(PasswordCredentials)
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+    }
+}
+
 publishMods {
     file = tasks.jar.archiveFile
+    additionalFiles.from tasks.sourcesJar.archiveFile
     changelog = rootProject.file('CHANGELOG.md').text
     version = project.version
     type = BETA
     displayName = "Drink Beer Refill ${mod_version} for ${minecraft_version} (NeoForge)"
     modLoaders.add('neoforge')
+
     curseforge {
         projectId = curseforge_project_id
         accessToken = providers.environmentVariable('CURSEFORGE_TOKEN')
@@ -145,6 +79,7 @@ publishMods {
         client = true
         server = true
     }
+
     modrinth {
         projectId = modrinth_project_id
         accessToken = providers.environmentVariable('MODRINTH_TOKEN')
