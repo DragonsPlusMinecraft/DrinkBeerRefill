@@ -12,16 +12,6 @@ plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
 
-// Keep Gradle, Loom, and ModDev temporary artifacts inside the isolated
-// workspace. This is set before project plugins create remap workers and keeps
-// unattended verification away from the user's profile and .minecraft.
-def isolatedGradleTemp = new File(settingsDir, 'build/tmp/gradle')
-isolatedGradleTemp.mkdirs()
-System.setProperty('java.io.tmpdir', isolatedGradleTemp.absolutePath)
-def isolatedJavaPreferences = new File(settingsDir, 'build/tmp/java-prefs')
-isolatedJavaPreferences.mkdirs()
-System.setProperty('java.util.prefs.userRoot', isolatedJavaPreferences.absolutePath)
-
 rootProject.name = 'DrinkBeerRefill'
 
 include('common')
