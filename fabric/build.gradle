@@ -48,21 +48,45 @@ fabricApi {
     }
 }
 
-tasks.register('prepareClientGameTestOptions', Copy) {
-    dependsOn tasks.named('deleteGameTestRunDir')
-    from layout.projectDirectory.file('src/gametest/options.txt')
-    into layout.buildDirectory.dir('run/clientGameTest')
+def expectedClientBackend = providers.gradleProperty('clientBackend').orElse('OpenGL').get()
+if (!['OpenGL', 'Vulkan'].any { it.equalsIgnoreCase(expectedClientBackend) }) {
+    throw new GradleException("clientBackend must be OpenGL or Vulkan, got '${expectedClientBackend}'")
+}
+def normalizedClientBackend = expectedClientBackend.equalsIgnoreCase('Vulkan') ? 'Vulkan' : 'OpenGL'
+def clientBackendOption = normalizedClientBackend.toLowerCase(Locale.ROOT)
+def clientBackendSlug = clientBackendOption
+def fabricClientRunDir = layout.buildDirectory.dir("run/clientGameTest-${clientBackendSlug}")
+
+loom.runs.named('clientGameTest') {
+    runDir = "build/run/clientGameTest-${clientBackendSlug}"
 }
 
-def expectedClientBackend = providers.gradleProperty('clientBackend').orElse('OpenGL').get()
+def cleanClientGameTestRunDir = tasks.register('cleanClientGameTestRunDir', Delete) {
+    delete fabricClientRunDir
+}
+
+def prepareClientGameTestOptions = tasks.register('prepareClientGameTestOptions', Copy) {
+    dependsOn cleanClientGameTestRunDir
+    from layout.projectDirectory.file('src/gametest/options.txt')
+    into fabricClientRunDir
+    inputs.property('graphicsBackend', clientBackendOption)
+    filesMatching('options.txt') {
+        expand(graphics_backend: clientBackendOption)
+    }
+}
+
+prepareClientGameTestOptions.configure {
+    mustRunAfter tasks.named('deleteGameTestRunDir')
+}
 
 tasks.named('runClientGameTest') {
-    dependsOn tasks.named('prepareClientGameTestOptions')
-    systemProperty 'drinkbeer.expectedBackend', expectedClientBackend
+    dependsOn prepareClientGameTestOptions
+    args '--graphicsBackend', normalizedClientBackend.toUpperCase(Locale.ROOT)
+    systemProperty 'drinkbeer.expectedBackend', normalizedClientBackend
 }
 
 def windowsClientWatchdog = rootProject.layout.projectDirectory.file('tools/client-test/windows-client-watchdog.ps1').asFile.absolutePath
-def fabricClientEvidence = layout.buildDirectory.dir('run/clientGameTest/client-test-evidence').get().asFile.absolutePath
+def fabricClientEvidence = fabricClientRunDir.get().dir('client-test-evidence').asFile.absolutePath
 def isWindowsHost = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')
 
 def startFabricClientWatchdog = tasks.register('startFabricClientWatchdog', Exec) {
@@ -75,7 +99,7 @@ def startFabricClientWatchdog = tasks.register('startFabricClientWatchdog', Exec
             '-Action', 'Start',
             '-EvidenceDirectory', fabricClientEvidence,
             '-Loader', 'fabric',
-            '-ExpectedBackend', expectedClientBackend
+            '-ExpectedBackend', normalizedClientBackend
 }
 
 def awaitFabricClientWatchdog = tasks.register('awaitFabricClientWatchdog', Exec) {
@@ -87,7 +111,7 @@ def awaitFabricClientWatchdog = tasks.register('awaitFabricClientWatchdog', Exec
             '-Action', 'Await',
             '-EvidenceDirectory', fabricClientEvidence,
             '-Loader', 'fabric',
-            '-ExpectedBackend', expectedClientBackend
+            '-ExpectedBackend', normalizedClientBackend
 }
 
 tasks.named('runClientGameTest') {

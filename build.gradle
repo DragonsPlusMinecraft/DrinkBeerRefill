@@ -8,7 +8,7 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask
 plugins {
     id 'base'
     id 'net.neoforged.moddev' version '2.0.143' apply false
-    id 'net.fabricmc.fabric-loom' version '1.15.5' apply false
+    id 'net.fabricmc.fabric-loom' version '1.17.19' apply false
     id 'me.modmuss50.mod-publish-plugin' version '2.1.1' apply false
 }
 
@@ -48,6 +48,11 @@ def expectedFabricArtifact = project(':fabric').layout.buildDirectory.file(
 def expectedNeoForgeArtifact = project(':neoforge').layout.buildDirectory.file(
         "libs/drinkbeer-refill-${minecraft_version}-neoforge-${mod_version}+neoforge.jar")
 def minecraftLogAllowlist = layout.projectDirectory.file('config/verification/minecraft-log-allowlist.json')
+def configuredClientBackend = providers.gradleProperty('clientBackend').orElse('OpenGL').get()
+def normalizedClientBackend = configuredClientBackend.equalsIgnoreCase('Vulkan') ? 'Vulkan' : 'OpenGL'
+def clientBackendSlug = normalizedClientBackend.toLowerCase(Locale.ROOT)
+def fabricClientRunDir = project(':fabric').layout.buildDirectory.dir("run/clientGameTest-${clientBackendSlug}")
+def neoForgeClientRunDir = project(':neoforge').layout.buildDirectory.dir("run/clientSmoke-${clientBackendSlug}")
 
 def verifyUnit = tasks.register('verifyUnit') {
     group = 'verification'
@@ -77,48 +82,46 @@ def auditFabricClientLogs = tasks.register('auditFabricClientLogs', AuditMinecra
     group = 'verification'
     description = 'Rejects unreviewed Fabric client errors, missing resources, and relevant exceptions.'
     dependsOn(':fabric:runClientGameTest')
-    logFiles.from(project(':fabric').layout.buildDirectory.file('run/clientGameTest/logs/latest.log'))
+    logFiles.from(fabricClientRunDir.map { it.file('logs/latest.log') })
     allowlistFile.set(minecraftLogAllowlist)
-    reportFile.set(layout.buildDirectory.file('reports/verification/fabric-client-log-audit.json'))
+    reportFile.set(layout.buildDirectory.file("reports/verification/fabric-client-log-audit-${clientBackendSlug}.json"))
 }
 
 def auditNeoForgeClientLogs = tasks.register('auditNeoForgeClientLogs', AuditMinecraftLogsTask) {
     group = 'verification'
     description = 'Rejects unreviewed NeoForge client errors, missing resources, and relevant exceptions.'
     dependsOn(':neoforge:runClientSmoke')
-    logFiles.from(project(':neoforge').layout.buildDirectory.file('run/clientSmoke/logs/latest.log'))
+    logFiles.from(neoForgeClientRunDir.map { it.file('logs/latest.log') })
     allowlistFile.set(minecraftLogAllowlist)
-    reportFile.set(layout.buildDirectory.file('reports/verification/neoforge-client-log-audit.json'))
+    reportFile.set(layout.buildDirectory.file("reports/verification/neoforge-client-log-audit-${clientBackendSlug}.json"))
 }
 
 def verifyFabricClientEvidence = tasks.register('verifyFabricClientEvidence', VerifyClientEvidenceTask) {
     group = 'verification'
     description = 'Validates Fabric world-entry, rendering, GUI, JEI, backend, screenshots, PID, and save evidence.'
     dependsOn(':fabric:runClientGameTest', ':fabric:awaitFabricClientWatchdog')
-    successMarkers.from(project(':fabric').layout.buildDirectory.file(
-            'run/clientGameTest/client-test-evidence/success.json'))
+    successMarkers.from(fabricClientRunDir.map { it.file('client-test-evidence/success.json') })
     expectedMinecraftVersion.set(minecraft_version)
     expectedModVersion.set(mod_version)
     expectedBackend.set(providers.gradleProperty('clientBackend').orElse('OpenGL'))
     expectedLoaderVersions.put('fabric', fabric_loader_version)
     expectedLoaders.add('fabric')
     requireWindowsWatchdog.set(System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows'))
-    reportFile.set(layout.buildDirectory.file('reports/verification/fabric-client-evidence.json'))
+    reportFile.set(layout.buildDirectory.file("reports/verification/fabric-client-evidence-${clientBackendSlug}.json"))
 }
 
 def verifyNeoForgeClientEvidence = tasks.register('verifyNeoForgeClientEvidence', VerifyClientEvidenceTask) {
     group = 'verification'
     description = 'Validates NeoForge world-entry, rendering, GUI, JEI, backend, screenshots, PID, and save evidence.'
     dependsOn(':neoforge:runClientSmoke', ':neoforge:awaitNeoForgeClientWatchdog')
-    successMarkers.from(project(':neoforge').layout.buildDirectory.file(
-            'run/clientSmoke/client-test-evidence/success.json'))
+    successMarkers.from(neoForgeClientRunDir.map { it.file('client-test-evidence/success.json') })
     expectedMinecraftVersion.set(minecraft_version)
     expectedModVersion.set(mod_version)
     expectedBackend.set(providers.gradleProperty('clientBackend').orElse('OpenGL'))
     expectedLoaderVersions.put('neoforge', neo_version)
     expectedLoaders.add('neoforge')
     requireWindowsWatchdog.set(System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows'))
-    reportFile.set(layout.buildDirectory.file('reports/verification/neoforge-client-evidence.json'))
+    reportFile.set(layout.buildDirectory.file("reports/verification/neoforge-client-evidence-${clientBackendSlug}.json"))
 }
 
 auditFabricClientLogs.configure { dependsOn verifyFabricClientEvidence }
@@ -142,6 +145,42 @@ def verifyClient = tasks.register('verifyClient') {
     dependsOn verifyFabricClient, verifyNeoForgeClient
 }
 
+def registerNestedClientGate = { String taskName, String backend ->
+    tasks.register(taskName, Exec) {
+        group = 'verification'
+        description = "Runs the complete ${backend} Fabric and NeoForge visible-client gate in an isolated wrapper process."
+        workingDir rootDir
+        def javaExecutable = new File(System.getProperty('java.home'),
+                System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')
+                        ? 'bin/java.exe'
+                        : 'bin/java')
+        def arguments = [
+                javaExecutable.absolutePath,
+                "-Dgradle.user.home=${gradle.gradleUserHomeDir.absolutePath}",
+                '-classpath', file('gradle/wrapper/gradle-wrapper.jar').absolutePath,
+                'org.gradle.wrapper.GradleWrapperMain',
+                'verifyClient',
+                "-PclientBackend=${backend}",
+                '--dependency-verification', 'strict',
+                '--no-daemon',
+                '--console=plain',
+                '--stacktrace'
+        ]
+        if (gradle.startParameter.rerunTasks) {
+            arguments.add('--rerun-tasks')
+        }
+        commandLine arguments
+    }
+}
+
+def verifyOpenGLClients = registerNestedClientGate('verifyOpenGLClients', 'OpenGL')
+def verifyVulkanClients = registerNestedClientGate('verifyVulkanClients', 'Vulkan')
+def verifyClientMatrix = tasks.register('verifyClientMatrix') {
+    group = 'verification'
+    description = 'Runs all four 26.2 visible-client gates: Fabric and NeoForge on OpenGL and Vulkan.'
+    dependsOn verifyOpenGLClients, verifyVulkanClients
+}
+
 def externalFabricWorldFixture = providers.gradleProperty('fabricWorldFixture').orNull
 def externalNeoForgeWorldFixture = providers.gradleProperty('neoForgeWorldFixture').orNull
 if ((externalFabricWorldFixture == null) != (externalNeoForgeWorldFixture == null)) {
@@ -152,10 +191,11 @@ def verifyCompatibilityEvidence = tasks.register('verifyCompatibilityEvidence', 
     group = 'verification'
     description = 'Checks that the current-version Fabric world survives a same-version NeoForge load and save.'
     if (externalFabricWorldFixture == null) {
-        dependsOn verifyFabricClient, verifyNeoForgeClient
+        dependsOn verifyOpenGLClients
         sourceFixture.set(project(':fabric').layout.buildDirectory.dir(
-                'run/clientGameTest/client-test-evidence/world-fixture'))
-        reopenedWorld.set(project(':neoforge').layout.buildDirectory.dir('run/clientSmoke/saves/drinkbeer-smoke'))
+                'run/clientGameTest-opengl/client-test-evidence/world-fixture'))
+        reopenedWorld.set(project(':neoforge').layout.buildDirectory.dir(
+                'run/clientSmoke-opengl/saves/drinkbeer-smoke'))
     } else {
         sourceFixture.set(file(externalFabricWorldFixture))
         reopenedWorld.set(file(externalNeoForgeWorldFixture))
@@ -199,7 +239,13 @@ def generateReleaseChecksums = tasks.register('generateReleaseChecksums', Genera
 verifyServer.configure { mustRunAfter verifyUnit }
 verifyCompatibility.configure { mustRunAfter verifyServer }
 verifyClient.configure { mustRunAfter verifyCompatibility }
-verifyArtifacts.configure { mustRunAfter verifyClient }
+verifyOpenGLClients.configure { mustRunAfter verifyServer }
+verifyVulkanClients.configure { mustRunAfter verifyOpenGLClients }
+verifyClientMatrix.configure { mustRunAfter verifyServer }
+verifyArtifacts.configure {
+    mustRunAfter verifyClient
+    mustRunAfter verifyClientMatrix
+}
 generateReleaseChecksums.configure { mustRunAfter verifyArtifacts }
 
 project(':fabric').tasks.matching { it.name == 'runGameTest' }.configureEach {
@@ -217,6 +263,12 @@ project(':neoforge').tasks.matching { it.name == 'runClientSmoke' }.configureEac
 
 tasks.register('verifyRelease') {
     group = 'verification'
-    description = 'Runs the complete unattended release gate and emits inspected jars plus SHA-256 evidence.'
-    dependsOn(verifyUnit, verifyServer, verifyCompatibility, verifyClient, verifyArtifacts, generateReleaseChecksums)
+    description = 'Runs the complete unattended local release gate, including the four-client OpenGL/Vulkan matrix.'
+    dependsOn(verifyUnit, verifyServer, verifyCompatibility, verifyClientMatrix, verifyArtifacts, generateReleaseChecksums)
+}
+
+tasks.register('verifyCiRelease') {
+    group = 'verification'
+    description = 'Runs the complete CI gate with real software-OpenGL clients; local verifyRelease supplies Vulkan evidence.'
+    dependsOn(verifyUnit, verifyServer, verifyCompatibility, verifyOpenGLClients, verifyArtifacts, generateReleaseChecksums)
 }

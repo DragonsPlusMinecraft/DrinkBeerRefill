@@ -1,3 +1,21 @@
+## Drink Beer Refill 1.4.0-beta.3 (Minecraft 26.2)
+
+### Changed
+
+- Updated the independent Fabric and NeoForge builds to Minecraft 26.2, Fabric API 0.156.0+26.2, NeoForge 26.2.0.53-beta, NeoForm `26.2-2`, and JEI 30.16.0.132.
+- Updated the toolchain to Java 25, Fabric Loom 1.17.19, and Gradle 9.5.1 while retaining ModDevGradle 2.0.143 and mod-publish 2.1.1.
+- Migrated 26.2 light-coordinate access, colored wool/terracotta accessors, client GUI access, render-target access, chunk readiness, and graphics-device inspection without changing gameplay, registry IDs, data keys, or payload IDs.
+- Added backend-isolated client directories and explicit OpenGL/Vulkan launch arguments. The NeoForge Vulkan test disables FancyModLoader's early OpenGL window only in the test run so Vulkan can create its own surface; this setting is not packaged.
+- Kept every Minecraft-version branch independent. Cross-Minecraft-version worlds and upgrade chains are intentionally neither supported nor tested; users should back up worlds before changing Minecraft versions.
+- Marked the 26.2 NeoForge artifact and Vulkan validation as Beta.
+
+### Verification
+
+- Passed loader-backed JUnit and artifact checks plus all 11 Fabric and 11 NeoForge server GameTests.
+- Passed four real visible clients: Fabric and NeoForge on both OpenGL and Vulkan. Every run entered the isolated 26.2 world, rendered at least 200 frames for 15 seconds, opened the keg GUI and all 9 JEI recipes, captured world/F3/GUI/JEI evidence, saved, and exited normally.
+- Confirmed both Vulkan runs used NVIDIA Vulkan 1.4.341 on an RTX 4080 SUPER without falling back to OpenGL.
+- Passed the same-Minecraft-version Fabric-to-NeoForge world round trip. No compatibility with any earlier Minecraft version is claimed or tested.
+
 ## Drink Beer Refill 1.4.0-beta.3 (Minecraft 26.1.2)
 
 ### Changed

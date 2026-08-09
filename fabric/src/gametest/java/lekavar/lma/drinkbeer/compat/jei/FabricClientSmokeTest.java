@@ -78,7 +78,7 @@ public final class FabricClientSmokeTest implements FabricClientGameTest {
             singleplayer.getServer().runCommand("execute at @p run setblock ~-4 ~ ~3 drinkbeer:gift_red");
             singleplayer.getServer().runCommand("execute at @p run tp @p ~ ~ ~-1.5 0 18");
             context.waitTicks(20);
-            singleplayer.getClientLevel().waitForChunksRender();
+            singleplayer.getConnection().waitForChunksRender();
 
             context.waitFor(client -> client.level != null
                     && client.player != null
@@ -127,8 +127,8 @@ public final class FabricClientSmokeTest implements FabricClientGameTest {
             }
             context.runOnClient(client -> Plugin.runtimeForTesting().getRecipesGui()
                     .showTypes(List.of(JEIBrewingRecipeCategory.TYPE)));
-            context.waitFor(client -> client.screen != null
-                    && !(client.screen instanceof BeerBarrelScreen), 400);
+            context.waitFor(client -> client.gui.screen() != null
+                    && !(client.gui.screen() instanceof BeerBarrelScreen), 400);
             context.waitTicks(5);
             jeiScreenshot = context.takeScreenshot("drinkbeer-jei");
             writeLifecycle(evidenceDirectory, "jei");
@@ -139,8 +139,11 @@ public final class FabricClientSmokeTest implements FabricClientGameTest {
                     "%.3f,%.3f,%.3f",
                     client.player.getX(), client.player.getY(), client.player.getZ()
             ));
-            backend = context.computeOnClient(client -> RenderSystem.getDevice().getBackendName());
-            backendDetails = context.computeOnClient(client -> RenderSystem.getDevice().getImplementationInformation());
+            backend = context.computeOnClient(client -> RenderSystem.getDevice().getDeviceInfo().backendName());
+            backendDetails = context.computeOnClient(client -> {
+                var device = RenderSystem.getDevice().getDeviceInfo();
+                return device.name() + " | " + device.vendorName() + " | " + device.driverInfo();
+            });
             if (!backend.toLowerCase(java.util.Locale.ROOT)
                     .contains(EXPECTED_BACKEND.toLowerCase(java.util.Locale.ROOT))) {
                 throw new AssertionError("Expected graphics backend " + EXPECTED_BACKEND + ", got " + backend);

@@ -86,7 +86,7 @@ public final class NeoForgeClientSmokeProbe {
                 stageStartedTick = clientTicks;
                 writeLifecycle(client, "probe_started");
                 DrinkBeer.LOGGER.info("NeoForge client smoke probe started; initial screen is {}",
-                        client.screen == null ? "none" : client.screen.getClass().getName());
+                        client.gui.screen() == null ? "none" : client.gui.screen().getClass().getName());
             }
             if (stage != Stage.WAIT_EXIT
                     && System.nanoTime() - firstTickNanos > WORLD_TIMEOUT.toNanos()) {
@@ -182,7 +182,7 @@ public final class NeoForgeClientSmokeProbe {
     }
 
     private static void waitForGui(Minecraft client) throws IOException {
-        if (!(client.screen instanceof BeerBarrelScreen)) {
+        if (!(client.gui.screen() instanceof BeerBarrelScreen)) {
             return;
         }
         capture(client, "drinkbeer-gui.png");
@@ -204,7 +204,7 @@ public final class NeoForgeClientSmokeProbe {
     }
 
     private static void waitForJei(Minecraft client) throws IOException {
-        if (client.screen == null || client.screen instanceof BeerBarrelScreen) {
+        if (client.gui.screen() == null || client.gui.screen() instanceof BeerBarrelScreen) {
             return;
         }
         capture(client, "drinkbeer-jei.png");
@@ -227,8 +227,9 @@ public final class NeoForgeClientSmokeProbe {
     }
 
     private static void writeSuccessAndDisconnect(Minecraft client) throws IOException {
-        backend = RenderSystem.getDevice().getBackendName();
-        backendDetails = RenderSystem.getDevice().getImplementationInformation();
+        var device = RenderSystem.getDevice().getDeviceInfo();
+        backend = device.backendName();
+        backendDetails = device.name() + " | " + device.vendorName() + " | " + device.driverInfo();
         if (!backend.toLowerCase(Locale.ROOT).contains(EXPECTED_BACKEND.toLowerCase(Locale.ROOT))) {
             throw new AssertionError("Expected graphics backend " + EXPECTED_BACKEND + ", got " + backend);
         }
@@ -256,7 +257,7 @@ public final class NeoForgeClientSmokeProbe {
         marker.addProperty("f3Screenshot", screenshotPath(client, "drinkbeer-f3.png").toString());
         marker.addProperty("guiScreenshot", screenshotPath(client, "drinkbeer-gui.png").toString());
         marker.addProperty("jeiScreenshot", screenshotPath(client, "drinkbeer-jei.png").toString());
-        client.setScreen(null);
+        client.gui.setScreen(null);
         writeLifecycle(client, "saving");
         transition(Stage.WAIT_EXIT);
         client.disconnectFromWorld(Component.literal("Drink Beer Refill client smoke test complete"));
@@ -283,7 +284,7 @@ public final class NeoForgeClientSmokeProbe {
         Path path = screenshotPath(client, fileName);
         Files.createDirectories(path.getParent());
         Files.deleteIfExists(path);
-        Screenshot.grab(client.gameDirectory, fileName, client.getMainRenderTarget(), 1,
+        Screenshot.grab(client.gameDirectory, fileName, client.gameRenderer.mainRenderTarget(), 1,
                 message -> DrinkBeer.LOGGER.info("NeoForge client probe screenshot {}: {}", fileName, message.getString()));
     }
 

@@ -2,7 +2,6 @@ package lekavar.lma.drinkbeer.client.renderers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import lekavar.lma.drinkbeer.blockentities.BartendingTableBlockEntity;
-import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -12,6 +11,7 @@ import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -37,7 +37,7 @@ public class BartendingTableBlockEntityRenderer implements BlockEntityRenderer<B
         this.itemModelResolver.updateForTopItem(renderState.beer, beerStack, ItemDisplayContext.GROUND,
                 blockEntity.getLevel(), null, blockEntity.getBlockPos().hashCode());
         if (blockEntity.getLevel() != null) {
-            renderState.lightCoords = LevelRenderer.getLightCoords(blockEntity.getLevel(), blockEntity.getBlockPos().above());
+            renderState.lightCoords = LightCoordsUtil.getLightCoords(blockEntity.getLevel(), blockEntity.getBlockPos().above());
         }
     }
 

@@ -65,25 +65,25 @@ jobs:
       - name: Install virtual display and Mesa
         run: sudo apt-get update && sudo apt-get install -y xvfb mesa-utils
       - name: Run real Fabric client gate
-        run: xvfb-run -a -s '-screen 0 1280x720x24' ./gradlew verifyFabricClient --stacktrace --dependency-verification strict
+        run: xvfb-run -a -s '-screen 0 1280x720x24' ./gradlew verifyFabricClient -PclientBackend=OpenGL --stacktrace --dependency-verification strict
       - name: Upload Fabric client evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: fabric-client-evidence-${{ github.sha }}
           path: |
-            fabric/build/run/clientGameTest/client-test-evidence/
-            fabric/build/run/clientGameTest/screenshots/
-            fabric/build/run/clientGameTest/logs/
-            fabric/build/run/clientGameTest/crash-reports/
-            fabric/build/run/clientGameTest/hs_err_pid*.log
+            fabric/build/run/clientGameTest-opengl/client-test-evidence/
+            fabric/build/run/clientGameTest-opengl/screenshots/
+            fabric/build/run/clientGameTest-opengl/logs/
+            fabric/build/run/clientGameTest-opengl/crash-reports/
+            fabric/build/run/clientGameTest-opengl/hs_err_pid*.log
             build/reports/verification/fabric-*.json
           if-no-files-found: warn
       - name: Upload same-version Fabric world
         uses: actions/upload-artifact@v4
         with:
           name: fabric-world-${{ github.sha }}
-          path: fabric/build/run/clientGameTest/client-test-evidence/world-fixture/
+          path: fabric/build/run/clientGameTest-opengl/client-test-evidence/world-fixture/
           if-no-files-found: error
 
   neoforge-client:
@@ -108,25 +108,25 @@ jobs:
           name: fabric-world-${{ github.sha }}
           path: ci-worlds/fabric
       - name: Run real NeoForge client gate
-        run: xvfb-run -a -s '-screen 0 1280x720x24' ./gradlew verifyNeoForgeClient -PclientWorldFixture="$PWD/ci-worlds/fabric" --stacktrace --dependency-verification strict
+        run: xvfb-run -a -s '-screen 0 1280x720x24' ./gradlew verifyNeoForgeClient -PclientBackend=OpenGL -PclientWorldFixture="$PWD/ci-worlds/fabric" --stacktrace --dependency-verification strict
       - name: Upload NeoForge client evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: neoforge-client-evidence-${{ github.sha }}
           path: |
-            neoforge/build/run/clientSmoke/client-test-evidence/
-            neoforge/build/run/clientSmoke/screenshots/
-            neoforge/build/run/clientSmoke/logs/
-            neoforge/build/run/clientSmoke/crash-reports/
-            neoforge/build/run/clientSmoke/hs_err_pid*.log
+            neoforge/build/run/clientSmoke-opengl/client-test-evidence/
+            neoforge/build/run/clientSmoke-opengl/screenshots/
+            neoforge/build/run/clientSmoke-opengl/logs/
+            neoforge/build/run/clientSmoke-opengl/crash-reports/
+            neoforge/build/run/clientSmoke-opengl/hs_err_pid*.log
             build/reports/verification/neoforge-*.json
           if-no-files-found: warn
       - name: Upload same-version NeoForge-saved world
         uses: actions/upload-artifact@v4
         with:
           name: neoforge-world-${{ github.sha }}
-          path: neoforge/build/run/clientSmoke/saves/drinkbeer-smoke/
+          path: neoforge/build/run/clientSmoke-opengl/saves/drinkbeer-smoke/
           if-no-files-found: error
 
   compatibility:
@@ -172,4 +172,4 @@ jobs:
       - name: Verify from an isolated Gradle home without build cache
         env:
           GRADLE_USER_HOME: ${{ runner.temp }}/drinkbeer-gradle-cold
-        run: ./gradlew verifyUnit --no-build-cache --stacktrace --dependency-verification strict
+        run: ./gradlew verifyUnit --no-build-cache --no-configuration-cache --stacktrace --dependency-verification strict

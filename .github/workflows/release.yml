@@ -41,8 +41,8 @@ jobs:
       - run: chmod +x ./gradlew
       - name: Install virtual display and Mesa
         run: sudo apt-get update && sudo apt-get install -y xvfb mesa-utils
-      - name: Re-run complete unattended gate
-        run: xvfb-run -a -s '-screen 0 1280x720x24' ./gradlew verifyRelease --stacktrace --dependency-verification strict
+      - name: Re-run complete CI unattended gate
+        run: xvfb-run -a -s '-screen 0 1280x720x24' ./gradlew verifyCiRelease --stacktrace --dependency-verification strict
       - name: Publish both loader artifacts
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
