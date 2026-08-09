@@ -8,9 +8,9 @@ This branch targets:
 - Fabric Loader 0.19.3 with Fabric API 0.156.0+26.2, or NeoForge 26.2.0.53-beta
 - Java 25
 
-The `1.4.0-beta.3` line updates both native loader builds to Minecraft 26.2 while preserving the authorized upstream 4.0 holiday content, gameplay, safe automation, and registry IDs. The 26.2 NeoForge artifact and Vulkan validation remain Beta while their upstream platforms are still in that state.
+The `1.4.0-beta.3` line updates both native loader builds to Minecraft 26.2 while preserving the authorized upstream 4.0 holiday content, gameplay, safe automation, and registry IDs. The 26.2 NeoForge artifact remains Beta while its upstream platform is still in that state.
 
-Each Minecraft-version branch is independent. Cross-version world upgrades are not supported or tested; back up a world before opening it with a different Minecraft version. Within this branch, Fabric and NeoForge use the same gameplay IDs and are tested against the same-version cross-loader smoke world.
+Each Minecraft-version branch is independent. Cross-version world upgrades are not supported; back up a world before opening it with a different Minecraft version. Fabric and NeoForge use the same gameplay IDs within this branch.
 
 ## Using the core blocks
 
@@ -60,21 +60,20 @@ JEI integration displays brewing recipes and required brewing time. The mod itse
 
 ## Development
 
-Build and run the non-graphical regression suite with Java 25:
+Build both loader artifacts with Java 25:
 
 ```text
-./gradlew verifyUnit verifyServer
+./gradlew build
 ```
 
-Run the complete local release gate with a graphical desktop available:
+Run a development client with either loader:
 
 ```text
-./gradlew verifyRelease
+./gradlew :fabric:runClient
+./gradlew :neoforge:runClient
 ```
 
-`verifyRelease` starts four real clients in isolated `build` directories: Fabric and NeoForge once with OpenGL and once with Vulkan. Every launch enters and renders a test world for at least 15 seconds/200 frames, opens the keg GUI and JEI recipes, saves screenshots and JSON evidence, exits normally, checks the same-version Fabric-to-NeoForge world round trip, inspects the release JARs, and writes SHA-256 checksums. Vulkan fallback to OpenGL fails the gate. It never uses the user's `.minecraft` directory or existing saves.
-
-The project is split into `common`, `fabric`, and `neoforge` modules. Shared JUnit and GameTest scenarios run in both loaders. This branch uses Fabric Loom 1.17.19 and Gradle 9.5.1. Minecraft 26.2 uses the unobfuscated development namespace introduced in 26.1, so this branch deliberately has no mappings/Parchment dependency and publishes the ordinary loader JARs.
+The project is split into `common`, `fabric`, and `neoforge` modules. Shared JUnit tests run through both loader modules. This branch uses Fabric Loom 1.17.19 and Gradle 9.5.1. Minecraft 26.2 uses the unobfuscated development namespace introduced in 26.1, so this branch deliberately has no mappings/Parchment dependency and publishes the ordinary loader JARs.
 
 ## Authors and license
 

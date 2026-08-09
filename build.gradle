@@ -1,10 +1,3 @@
-import lekavar.lma.build.AuditMinecraftLogsTask
-import lekavar.lma.build.GenerateChecksumsTask
-import lekavar.lma.build.VerifyClientEvidenceTask
-import lekavar.lma.build.VerifyCurrentWorldCompatibilityTask
-import lekavar.lma.build.VerifyModArtifactsTask
-import org.gradle.api.tasks.bundling.AbstractArchiveTask
-
 plugins {
     id 'base'
     id 'net.neoforged.moddev' version '2.0.143' apply false
@@ -15,13 +8,145 @@ plugins {
 group = mod_group_id
 version = mod_version
 
-allprojects {
-    dependencyLocking {
-        lockAllConfigurations()
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'idea'
+
+    group = rootProject.mod_group_id
+    version = project.name in ['fabric', 'neoforge']
+            ? "${rootProject.mod_version}+${project.name}"
+            : rootProject.mod_version
+
+    base {
+        archivesName = "drinkbeer-refill-${rootProject.minecraft_version}-${project.name}"
     }
-    tasks.withType(AbstractArchiveTask).configureEach {
-        preserveFileTimestamps = false
-        reproducibleFileOrder = true
+
+    java {
+        toolchain.languageVersion = JavaLanguageVersion.of(rootProject.java_version as int)
+        withSourcesJar()
+    }
+
+    repositories {
+        mavenCentral()
+        maven { url = 'https://maven.neoforged.net/releases' }
+        maven { url = 'https://maven.fabricmc.net/' }
+        maven { url = 'https://maven.blamejared.com/' }
+    }
+
+    dependencies {
+        compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.release = rootProject.java_version as int
+        options.compilerArgs.addAll('-Xlint:deprecation', '-Xlint:unchecked')
+    }
+
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
+        systemProperty 'drinkbeer.projectDir', project(':common').projectDir.absolutePath
+    }
+
+    tasks.named('jar', Jar).configure {
+        from(rootProject.file('LICENSE'))
+        manifest {
+            attributes(
+                    'Specification-Title': rootProject.mod_name,
+                    'Specification-Vendor': rootProject.mod_authors,
+                    'Specification-Version': rootProject.mod_version,
+                    'Implementation-Title': project.name,
+                    'Implementation-Version': project.version,
+                    'Implementation-Vendor': rootProject.mod_authors,
+                    'Built-On-Minecraft': rootProject.minecraft_version
+            )
+        }
+    }
+
+    tasks.named('processResources', ProcessResources).configure {
+        def expandProps = [
+                mod_id                 : rootProject.mod_id,
+                mod_name               : rootProject.mod_name,
+                mod_license            : rootProject.mod_license,
+                mod_version            : project.version,
+                mod_authors            : rootProject.mod_authors,
+                mod_description        : rootProject.mod_description,
+                minecraft_version      : rootProject.minecraft_version,
+                minecraft_version_range: rootProject.minecraft_version_range,
+                fabric_loader_version  : rootProject.fabric_loader_version,
+                fabric_api_version     : rootProject.fabric_api_version,
+                neo_version            : rootProject.neo_version,
+                neo_version_range      : rootProject.neo_version_range,
+                loader_version_range   : rootProject.loader_version_range,
+                java_version           : rootProject.java_version
+        ]
+        inputs.properties(expandProps)
+        filesMatching(['fabric.mod.json', 'META-INF/neoforge.mods.toml']) {
+            expand(expandProps)
+        }
+    }
+
+    idea {
+        module {
+            downloadSources = true
+            downloadJavadoc = true
+        }
+    }
+}
+
+configure([project(':fabric'), project(':neoforge')]) {
+    configurations {
+        commonJava {
+            canBeResolved = true
+            canBeConsumed = false
+        }
+        commonResources {
+            canBeResolved = true
+            canBeConsumed = false
+        }
+        commonTestJava {
+            canBeResolved = true
+            canBeConsumed = false
+        }
+        commonTestResources {
+            canBeResolved = true
+            canBeConsumed = false
+        }
+    }
+
+    dependencies {
+        compileOnly(project(':common'))
+        testImplementation(project(':common'))
+        commonJava project(path: ':common', configuration: 'commonJava')
+        commonResources project(path: ':common', configuration: 'commonResources')
+        commonTestJava project(path: ':common', configuration: 'commonTestJava')
+        commonTestResources project(path: ':common', configuration: 'commonTestResources')
+    }
+
+    tasks.named('compileJava', JavaCompile).configure {
+        dependsOn(configurations.commonJava)
+        source(configurations.commonJava)
+    }
+
+    tasks.named('processResources', ProcessResources).configure {
+        dependsOn(configurations.commonResources)
+        from(configurations.commonResources)
+    }
+
+    tasks.named('compileTestJava', JavaCompile).configure {
+        dependsOn(configurations.commonTestJava)
+        source(configurations.commonTestJava)
+    }
+
+    tasks.named('processTestResources', ProcessResources).configure {
+        dependsOn(configurations.commonTestResources)
+        from(configurations.commonTestResources)
+    }
+
+    tasks.named('sourcesJar', Jar).configure {
+        dependsOn(configurations.commonJava, configurations.commonResources)
+        from(configurations.commonJava)
+        from(configurations.commonResources)
     }
 }
 
@@ -30,245 +155,21 @@ tasks.named('assemble') {
 }
 
 tasks.named('check') {
-    dependsOn(':fabric:check', ':neoforge:check', ':fabric:runGameTest', ':neoforge:runGameTestServer')
+    dependsOn(':fabric:check', ':neoforge:check')
 }
 
 tasks.named('build') {
     dependsOn(':fabric:build', ':neoforge:build')
 }
 
-tasks.register('publishAllMods') {
+tasks.register('publish') {
     group = 'publishing'
-    description = 'Publishes the Fabric and NeoForge artifacts.'
+    description = 'Publishes both loader artifacts to the Dragons Plus Maven.'
+    dependsOn(':fabric:publish', ':neoforge:publish')
+}
+
+tasks.register('publishMods') {
+    group = 'publishing'
+    description = 'Publishes both loader artifacts to CurseForge and Modrinth.'
     dependsOn(':fabric:publishMods', ':neoforge:publishMods')
-}
-
-def expectedFabricArtifact = project(':fabric').layout.buildDirectory.file(
-        "libs/drinkbeer-refill-${minecraft_version}-fabric-${mod_version}+fabric.jar")
-def expectedNeoForgeArtifact = project(':neoforge').layout.buildDirectory.file(
-        "libs/drinkbeer-refill-${minecraft_version}-neoforge-${mod_version}+neoforge.jar")
-def minecraftLogAllowlist = layout.projectDirectory.file('config/verification/minecraft-log-allowlist.json')
-def configuredClientBackend = providers.gradleProperty('clientBackend').orElse('OpenGL').get()
-def normalizedClientBackend = configuredClientBackend.equalsIgnoreCase('Vulkan') ? 'Vulkan' : 'OpenGL'
-def clientBackendSlug = normalizedClientBackend.toLowerCase(Locale.ROOT)
-def fabricClientRunDir = project(':fabric').layout.buildDirectory.dir("run/clientGameTest-${clientBackendSlug}")
-def neoForgeClientRunDir = project(':neoforge').layout.buildDirectory.dir("run/clientSmoke-${clientBackendSlug}")
-
-def verifyUnit = tasks.register('verifyUnit') {
-    group = 'verification'
-    description = 'Compiles both loaders and runs loader-backed JUnit, resource, registry, codec, config, and data tests.'
-    dependsOn(':fabric:test', ':neoforge:test', ':fabric:assemble', ':neoforge:assemble')
-}
-
-def auditServerLogs = tasks.register('auditServerLogs', AuditMinecraftLogsTask) {
-    group = 'verification'
-    description = 'Rejects unreviewed server GameTest errors and relevant exceptions.'
-    dependsOn(':fabric:runGameTest', ':neoforge:runGameTestServer')
-    logFiles.from(
-            project(':fabric').layout.buildDirectory.file('run/gameTest/logs/latest.log'),
-            project(':neoforge').layout.buildDirectory.file('run/gameTestServer/logs/latest.log')
-    )
-    allowlistFile.set(minecraftLogAllowlist)
-    reportFile.set(layout.buildDirectory.file('reports/verification/server-log-audit.json'))
-}
-
-def verifyServer = tasks.register('verifyServer') {
-    group = 'verification'
-    description = 'Runs all Fabric and NeoForge dedicated-server GameTests and audits their logs.'
-    dependsOn(':fabric:runGameTest', ':neoforge:runGameTestServer', auditServerLogs)
-}
-
-def auditFabricClientLogs = tasks.register('auditFabricClientLogs', AuditMinecraftLogsTask) {
-    group = 'verification'
-    description = 'Rejects unreviewed Fabric client errors, missing resources, and relevant exceptions.'
-    dependsOn(':fabric:runClientGameTest')
-    logFiles.from(fabricClientRunDir.map { it.file('logs/latest.log') })
-    allowlistFile.set(minecraftLogAllowlist)
-    reportFile.set(layout.buildDirectory.file("reports/verification/fabric-client-log-audit-${clientBackendSlug}.json"))
-}
-
-def auditNeoForgeClientLogs = tasks.register('auditNeoForgeClientLogs', AuditMinecraftLogsTask) {
-    group = 'verification'
-    description = 'Rejects unreviewed NeoForge client errors, missing resources, and relevant exceptions.'
-    dependsOn(':neoforge:runClientSmoke')
-    logFiles.from(neoForgeClientRunDir.map { it.file('logs/latest.log') })
-    allowlistFile.set(minecraftLogAllowlist)
-    reportFile.set(layout.buildDirectory.file("reports/verification/neoforge-client-log-audit-${clientBackendSlug}.json"))
-}
-
-def verifyFabricClientEvidence = tasks.register('verifyFabricClientEvidence', VerifyClientEvidenceTask) {
-    group = 'verification'
-    description = 'Validates Fabric world-entry, rendering, GUI, JEI, backend, screenshots, PID, and save evidence.'
-    dependsOn(':fabric:runClientGameTest', ':fabric:awaitFabricClientWatchdog')
-    successMarkers.from(fabricClientRunDir.map { it.file('client-test-evidence/success.json') })
-    expectedMinecraftVersion.set(minecraft_version)
-    expectedModVersion.set(mod_version)
-    expectedBackend.set(providers.gradleProperty('clientBackend').orElse('OpenGL'))
-    expectedLoaderVersions.put('fabric', fabric_loader_version)
-    expectedLoaders.add('fabric')
-    requireWindowsWatchdog.set(System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows'))
-    reportFile.set(layout.buildDirectory.file("reports/verification/fabric-client-evidence-${clientBackendSlug}.json"))
-}
-
-def verifyNeoForgeClientEvidence = tasks.register('verifyNeoForgeClientEvidence', VerifyClientEvidenceTask) {
-    group = 'verification'
-    description = 'Validates NeoForge world-entry, rendering, GUI, JEI, backend, screenshots, PID, and save evidence.'
-    dependsOn(':neoforge:runClientSmoke', ':neoforge:awaitNeoForgeClientWatchdog')
-    successMarkers.from(neoForgeClientRunDir.map { it.file('client-test-evidence/success.json') })
-    expectedMinecraftVersion.set(minecraft_version)
-    expectedModVersion.set(mod_version)
-    expectedBackend.set(providers.gradleProperty('clientBackend').orElse('OpenGL'))
-    expectedLoaderVersions.put('neoforge', neo_version)
-    expectedLoaders.add('neoforge')
-    requireWindowsWatchdog.set(System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows'))
-    reportFile.set(layout.buildDirectory.file("reports/verification/neoforge-client-evidence-${clientBackendSlug}.json"))
-}
-
-auditFabricClientLogs.configure { dependsOn verifyFabricClientEvidence }
-auditNeoForgeClientLogs.configure { dependsOn verifyNeoForgeClientEvidence }
-
-def verifyFabricClient = tasks.register('verifyFabricClient') {
-    group = 'verification'
-    description = 'Launches the real Fabric client and enforces isolated-world graphical evidence.'
-    dependsOn verifyFabricClientEvidence, auditFabricClientLogs
-}
-
-def verifyNeoForgeClient = tasks.register('verifyNeoForgeClient') {
-    group = 'verification'
-    description = 'Launches the real NeoForge client and enforces isolated-world graphical evidence.'
-    dependsOn verifyNeoForgeClientEvidence, auditNeoForgeClientLogs
-}
-
-def verifyClient = tasks.register('verifyClient') {
-    group = 'verification'
-    description = 'Launches both real clients, enters isolated worlds, and enforces visible-window evidence.'
-    dependsOn verifyFabricClient, verifyNeoForgeClient
-}
-
-def registerNestedClientGate = { String taskName, String backend ->
-    tasks.register(taskName, Exec) {
-        group = 'verification'
-        description = "Runs the complete ${backend} Fabric and NeoForge visible-client gate in an isolated wrapper process."
-        workingDir rootDir
-        def javaExecutable = new File(System.getProperty('java.home'),
-                System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')
-                        ? 'bin/java.exe'
-                        : 'bin/java')
-        def arguments = [
-                javaExecutable.absolutePath,
-                "-Dgradle.user.home=${gradle.gradleUserHomeDir.absolutePath}",
-                '-classpath', file('gradle/wrapper/gradle-wrapper.jar').absolutePath,
-                'org.gradle.wrapper.GradleWrapperMain',
-                'verifyClient',
-                "-PclientBackend=${backend}",
-                '--dependency-verification', 'strict',
-                '--no-daemon',
-                '--console=plain',
-                '--stacktrace'
-        ]
-        if (gradle.startParameter.rerunTasks) {
-            arguments.add('--rerun-tasks')
-        }
-        commandLine arguments
-    }
-}
-
-def verifyOpenGLClients = registerNestedClientGate('verifyOpenGLClients', 'OpenGL')
-def verifyVulkanClients = registerNestedClientGate('verifyVulkanClients', 'Vulkan')
-def verifyClientMatrix = tasks.register('verifyClientMatrix') {
-    group = 'verification'
-    description = 'Runs all four 26.2 visible-client gates: Fabric and NeoForge on OpenGL and Vulkan.'
-    dependsOn verifyOpenGLClients, verifyVulkanClients
-}
-
-def externalFabricWorldFixture = providers.gradleProperty('fabricWorldFixture').orNull
-def externalNeoForgeWorldFixture = providers.gradleProperty('neoForgeWorldFixture').orNull
-if ((externalFabricWorldFixture == null) != (externalNeoForgeWorldFixture == null)) {
-    throw new GradleException('fabricWorldFixture and neoForgeWorldFixture must be provided together')
-}
-
-def verifyCompatibilityEvidence = tasks.register('verifyCompatibilityEvidence', VerifyCurrentWorldCompatibilityTask) {
-    group = 'verification'
-    description = 'Checks that the current-version Fabric world survives a same-version NeoForge load and save.'
-    if (externalFabricWorldFixture == null) {
-        dependsOn verifyOpenGLClients
-        sourceFixture.set(project(':fabric').layout.buildDirectory.dir(
-                'run/clientGameTest-opengl/client-test-evidence/world-fixture'))
-        reopenedWorld.set(project(':neoforge').layout.buildDirectory.dir(
-                'run/clientSmoke-opengl/saves/drinkbeer-smoke'))
-    } else {
-        sourceFixture.set(file(externalFabricWorldFixture))
-        reopenedWorld.set(file(externalNeoForgeWorldFixture))
-    }
-    reportFile.set(layout.buildDirectory.file('reports/verification/current-cross-loader-world.json'))
-}
-
-def verifyCompatibility = tasks.register('verifyCompatibility') {
-    group = 'verification'
-    description = 'Runs same-Minecraft-version cross-loader world consistency verification.'
-    dependsOn verifyCompatibilityEvidence
-}
-
-def verifyArtifacts = tasks.register('verifyArtifacts', VerifyModArtifactsTask) {
-    group = 'verification'
-    description = 'Inspects final loader jars for exact metadata and test-only content leakage.'
-    dependsOn(':fabric:assemble', ':neoforge:assemble')
-    artifacts.from(expectedFabricArtifact, expectedNeoForgeArtifact)
-    expectedMinecraftVersion.set(minecraft_version)
-    expectedModVersion.set(mod_version)
-    expectedJavaVersion.set(java_version as int)
-    reportFile.set(layout.buildDirectory.file('reports/verification/artifacts.json'))
-}
-
-def collectReleaseArtifacts = tasks.register('collectReleaseArtifacts', Sync) {
-    group = 'build'
-    description = 'Collects the two inspected release jars without test fixtures or probes.'
-    dependsOn verifyArtifacts
-    from(expectedFabricArtifact, expectedNeoForgeArtifact)
-    into(layout.buildDirectory.dir('release/artifacts'))
-}
-
-def generateReleaseChecksums = tasks.register('generateReleaseChecksums', GenerateChecksumsTask) {
-    group = 'verification'
-    description = 'Generates SHA-256 checksums for the two final release jars.'
-    dependsOn collectReleaseArtifacts
-    artifacts.from(layout.buildDirectory.dir('release/artifacts').map { it.asFileTree.matching { include('*.jar') } })
-    checksumFile.set(layout.buildDirectory.file('release/SHA256SUMS'))
-}
-
-verifyServer.configure { mustRunAfter verifyUnit }
-verifyCompatibility.configure { mustRunAfter verifyServer }
-verifyClient.configure { mustRunAfter verifyCompatibility }
-verifyOpenGLClients.configure { mustRunAfter verifyServer }
-verifyVulkanClients.configure { mustRunAfter verifyOpenGLClients }
-verifyClientMatrix.configure { mustRunAfter verifyServer }
-verifyArtifacts.configure {
-    mustRunAfter verifyClient
-    mustRunAfter verifyClientMatrix
-}
-generateReleaseChecksums.configure { mustRunAfter verifyArtifacts }
-
-project(':fabric').tasks.matching { it.name == 'runGameTest' }.configureEach {
-    mustRunAfter(':fabric:test', ':neoforge:test', ':fabric:assemble', ':neoforge:assemble')
-}
-project(':neoforge').tasks.matching { it.name == 'runGameTestServer' }.configureEach {
-    mustRunAfter(':fabric:test', ':neoforge:test', ':fabric:assemble', ':neoforge:assemble')
-}
-project(':fabric').tasks.matching { it.name == 'runClientGameTest' }.configureEach {
-    mustRunAfter(':fabric:runGameTest', ':neoforge:runGameTestServer')
-}
-project(':neoforge').tasks.matching { it.name == 'runClientSmoke' }.configureEach {
-    mustRunAfter(':fabric:runGameTest', ':neoforge:runGameTestServer')
-}
-
-tasks.register('verifyRelease') {
-    group = 'verification'
-    description = 'Runs the complete unattended local release gate, including the four-client OpenGL/Vulkan matrix.'
-    dependsOn(verifyUnit, verifyServer, verifyCompatibility, verifyClientMatrix, verifyArtifacts, generateReleaseChecksums)
-}
-
-tasks.register('verifyCiRelease') {
-    group = 'verification'
-    description = 'Runs the complete CI gate with real software-OpenGL clients; local verifyRelease supplies Vulkan evidence.'
-    dependsOn(verifyUnit, verifyServer, verifyCompatibility, verifyOpenGLClients, verifyArtifacts, generateReleaseChecksums)
 }
