@@ -24,6 +24,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.TypedEntityData;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.Level;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
@@ -66,8 +68,8 @@ public class MixedBeerManager {
     public static int getBeerId(ItemStack itemStack) {
         if (itemStack.getItem() instanceof MixedBeerBlockItem) {
             CompoundTag legacyDescriptor = getLegacyDescriptor(itemStack);
-            if (legacyDescriptor != null && legacyDescriptor.contains("beerId", Tag.TAG_ANY_NUMERIC)) {
-                return sanitizeBeerId(legacyDescriptor.getInt("beerId"));
+            if (legacyDescriptor != null && legacyDescriptor.getInt("beerId").isPresent()) {
+                return sanitizeBeerId(legacyDescriptor.getIntOr("beerId", Beers.DEFAULT_BEER_ID));
             }
             return sanitizeBeerId(itemStack.getOrDefault(DataComponentTypeRegistry.BEER_ID_COMPONENT.get(), Beers.DEFAULT_BEER_ID));
         }
@@ -77,8 +79,8 @@ public class MixedBeerManager {
     public static List<Integer> getSpiceList(ItemStack itemStack) {
         if (itemStack.getItem() instanceof MixedBeerBlockItem) {
             CompoundTag legacyDescriptor = getLegacyDescriptor(itemStack);
-            if (legacyDescriptor != null && legacyDescriptor.contains("spiceList", Tag.TAG_INT_ARRAY)) {
-                return sanitizeSpiceIds(java.util.Arrays.stream(legacyDescriptor.getIntArray("spiceList")).boxed().toList());
+            if (legacyDescriptor != null && legacyDescriptor.getIntArray("spiceList").isPresent()) {
+                return sanitizeSpiceIds(java.util.Arrays.stream(legacyDescriptor.getIntArray("spiceList").orElseGet(() -> new int[0])).boxed().toList());
             }
             SpiceData data = itemStack.getOrDefault(
                     DataComponentTypeRegistry.SPICE_COMPONENT.get(),
@@ -98,23 +100,25 @@ public class MixedBeerManager {
 
     @Nullable
     private static CompoundTag getLegacyDescriptor(ItemStack itemStack) {
-        CompoundTag descriptor = findLegacyDescriptor(itemStack.getOrDefault(DataComponents.BLOCK_ENTITY_DATA, CustomData.EMPTY).copyTag());
-        if (descriptor != null) {
-            return descriptor;
+        TypedEntityData<BlockEntityType<?>> blockEntityData = itemStack.get(DataComponents.BLOCK_ENTITY_DATA);
+        if (blockEntityData != null) {
+            CompoundTag descriptor = findLegacyDescriptor(blockEntityData.copyTagWithoutId());
+            if (descriptor != null) {
+                return descriptor;
+            }
         }
         return findLegacyDescriptor(itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag());
     }
 
     @Nullable
     public static CompoundTag findLegacyDescriptor(CompoundTag tag) {
-        if (tag.contains("MixedBeer", Tag.TAG_COMPOUND)) {
-            return tag.getCompound("MixedBeer");
+        CompoundTag mixedBeer = tag.getCompound("MixedBeer").orElse(null);
+        if (mixedBeer != null) {
+            return mixedBeer;
         }
-        if (tag.contains("BlockEntityTag", Tag.TAG_COMPOUND)) {
-            CompoundTag blockEntityTag = tag.getCompound("BlockEntityTag");
-            if (blockEntityTag.contains("MixedBeer", Tag.TAG_COMPOUND)) {
-                return blockEntityTag.getCompound("MixedBeer");
-            }
+        CompoundTag blockEntityTag = tag.getCompound("BlockEntityTag").orElse(null);
+        if (blockEntityTag != null) {
+            return blockEntityTag.getCompound("MixedBeer").orElse(null);
         }
         return null;
     }
@@ -185,17 +189,10 @@ public class MixedBeerManager {
 
     private static List<Pair<MobEffect, Integer>> getBeerStatusEffectList(ItemStack stack, Level world) {
         List<Pair<MobEffect, Integer>> resultStatusEffectList = new ArrayList<>();
-        List<FoodProperties.PossibleEffect> possibleEffects = Beers.byItem(stack.getItem())
-                .getDefinition()
-                .foodProperties(DrinkBeerConfig.beerSaturationModifier())
-                .effects();
-        if (possibleEffects != null) {
-            if (!possibleEffects.isEmpty()) {
-                for (FoodProperties.PossibleEffect possibleEffect : possibleEffects) {
-                    MobEffectInstance effect = possibleEffect.effect();
-                    resultStatusEffectList.add(Pair.of(effect.getEffect().value(), effect.getDuration()));
-                }
-            }
+        var effectFactory = Beers.byItem(stack.getItem()).getDefinition().effectFactory();
+        if (effectFactory != null) {
+            MobEffectInstance effect = effectFactory.get();
+            resultStatusEffectList.add(Pair.of(effect.getEffect().value(), effect.getDuration()));
         }
         if (stack.getItem().equals(Beers.BEER_MUG_NIGHT_HOWL_KVASS.getBeerItem())) {
             Pair<MobEffect, Integer> nightHowlStatusEffectPair = NightHowlStatusEffect.getStatusEffectPair(world);

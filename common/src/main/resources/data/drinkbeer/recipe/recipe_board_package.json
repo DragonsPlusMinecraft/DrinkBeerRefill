@@ -6,15 +6,9 @@
     "XYX"
   ],
   "key": {
-    "X": {
-      "tag": "minecraft:logs"
-    },
-    "Y": {
-      "item": "minecraft:paper"
-    },
-    "Z": {
-      "item": "minecraft:leather"
-    }
+    "X": "#minecraft:logs",
+    "Y": "minecraft:paper",
+    "Z": "minecraft:leather"
   },
   "result": {
     "id": "drinkbeer:recipe_board_package",

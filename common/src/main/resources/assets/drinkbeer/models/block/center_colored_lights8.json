@@ -1,7 +1,6 @@
 {
 	"render_type": "minecraft:cutout",
 	"credit": "Made with Blockbench",
-	"parent": "minecraft:block/cube_column",
 	"textures": {
 		"0": "drinkbeer:block/colored_lights",
 		"particle": "drinkbeer:block/colored_lights"

@@ -1,6 +1,5 @@
 package lekavar.lma.drinkbeer.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import lekavar.lma.drinkbeer.DrinkBeer;
 import lekavar.lma.drinkbeer.managers.TradeBoxManager;
 import lekavar.lma.drinkbeer.networking.NetWorking;
@@ -9,18 +8,18 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 import java.awt.*;
 
 public class TradeBoxScreen extends AbstractContainerScreen<TradeBoxMenu> {
-    private static final ResourceLocation TRADE_BOX_GUI = ResourceLocation.fromNamespaceAndPath(DrinkBeer.MOD_ID, "textures/gui/container/trade_box.png");
-    private static final ResourceLocation REFRESH_WIDGET = ResourceLocation.fromNamespaceAndPath(DrinkBeer.MOD_ID, "container/reroll");
-    private static final ResourceLocation REFRESH_WIDGET_BLUE = ResourceLocation.fromNamespaceAndPath(DrinkBeer.MOD_ID, "container/reroll_blue");
+    private static final Identifier TRADE_BOX_GUI = Identifier.fromNamespaceAndPath(DrinkBeer.MOD_ID, "textures/gui/container/trade_box.png");
+    private static final Identifier REFRESH_WIDGET = Identifier.fromNamespaceAndPath(DrinkBeer.MOD_ID, "container/reroll");
+    private static final Identifier REFRESH_WIDGET_BLUE = Identifier.fromNamespaceAndPath(DrinkBeer.MOD_ID, "container/reroll_blue");
     private static final WidgetSprites REFRESH_WIDGET_SPRITE = new WidgetSprites(REFRESH_WIDGET,REFRESH_WIDGET_BLUE);
     private final int textureWidth = 176;
     private final int textureHeight = 166;
@@ -36,24 +35,25 @@ public class TradeBoxScreen extends AbstractContainerScreen<TradeBoxMenu> {
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, TRADE_BOX_GUI);
         int backgroundWidth = this.imageWidth;
         int backgroundHeight = this.imageHeight;
         int x = (this.width - backgroundWidth) / 2;
         int y = (this.height - backgroundHeight) / 2;
 
-        guiGraphics.blit(TRADE_BOX_GUI, x, y, 0, 0, backgroundWidth, backgroundHeight);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TRADE_BOX_GUI,
+                x, y, 0.0F, 0.0F, backgroundWidth, backgroundHeight, 256, 256);
         if (container.isCooling()) {
-            guiGraphics.blit(TRADE_BOX_GUI, x + 84, y + 25, 178, 38, 72, 36);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TRADE_BOX_GUI,
+                    x + 84, y + 25, 178.0F, 38.0F, 72, 36, 256, 256);
             String timeStr = Convert.tickToTime(container.getCoolingTime());
             guiGraphics.drawString(font, timeStr, x + 114, y + 39, new Color(64, 64, 64, 255).getRGB());
         } else if (container.isTrading()) {
             if (isHovering(157, 6, 13, 13, (double) mouseX, (double) mouseY)) {
-                guiGraphics.blit(TRADE_BOX_GUI, x + 155, y + 4, 178, 19, 16, 16);
+                guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TRADE_BOX_GUI,
+                        x + 155, y + 4, 178.0F, 19.0F, 16, 16, 256, 256);
             } else {
-                guiGraphics.blit(TRADE_BOX_GUI, x + 155, y + 4, 178, 0, 16, 16);
+                guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TRADE_BOX_GUI,
+                        x + 155, y + 4, 178.0F, 0.0F, 16, 16, 256, 256);
             }
         }
         if (!container.isCooling()) {

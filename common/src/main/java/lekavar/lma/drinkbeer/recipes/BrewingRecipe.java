@@ -5,6 +5,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import lekavar.lma.drinkbeer.registries.RecipeRegistry;
+import lekavar.lma.drinkbeer.registries.BlockRegistry;
 import lekavar.lma.drinkbeer.utils.DrinkBeerCodes;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -12,9 +13,15 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -39,7 +46,6 @@ public class BrewingRecipe implements Recipe<IBrewingInventory> {
         return result;
     }
 
-    @Override
     public NonNullList<Ingredient> getIngredients() {
         NonNullList<Ingredient> result = NonNullList.create();
         result.addAll(input);
@@ -82,7 +88,6 @@ public class BrewingRecipe implements Recipe<IBrewingInventory> {
     }
 
     // Can Craft at any dimension
-    @Override
     public boolean canCraftInDimensions(int p_194133_1_, int p_194133_2_) {
         return true;
     }
@@ -92,7 +97,6 @@ public class BrewingRecipe implements Recipe<IBrewingInventory> {
      * If your recipe has more than one possible result (e.g. it's dynamic and depends on its inputs),
      * then return an empty stack.
      */
-    @Override
     public ItemStack getResultItem(HolderLookup.Provider provider) {
         //For Safety, I use #copy
         return result.copy();
@@ -112,13 +116,34 @@ public class BrewingRecipe implements Recipe<IBrewingInventory> {
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<BrewingRecipe> getSerializer() {
         return RecipeRegistry.RECIPE_SERIALIZER_BREWING.get();
     }
 
     @Override
-    public RecipeType<?> getType() {
+    public RecipeType<BrewingRecipe> getType() {
         return RecipeRegistry.RECIPE_TYPE_BREWING.get();
+    }
+
+    @Override
+    public PlacementInfo placementInfo() {
+        return PlacementInfo.NOT_PLACEABLE;
+    }
+
+    @Override
+    public RecipeBookCategory recipeBookCategory() {
+        return RecipeBookCategories.CRAFTING_MISC;
+    }
+
+    @Override
+    public List<RecipeDisplay> display() {
+        List<SlotDisplay> ingredients = new java.util.ArrayList<>(input.stream().map(Ingredient::display).toList());
+        ingredients.add(new SlotDisplay.ItemStackSlotDisplay(cup));
+        return List.of(new ShapelessCraftingRecipeDisplay(
+                ingredients,
+                new SlotDisplay.ItemStackSlotDisplay(result),
+                new SlotDisplay.ItemSlotDisplay(BlockRegistry.BEER_BARREL.get().asItem())
+        ));
     }
 
     public int getRequiredCupCount() {
@@ -147,8 +172,10 @@ public class BrewingRecipe implements Recipe<IBrewingInventory> {
 
         public static BrewingRecipe fromNetwork(RegistryFriendlyByteBuf packetBuffer) {
             int i = packetBuffer.readVarInt();
-            NonNullList<Ingredient> ingredients = NonNullList.withSize(i, Ingredient.EMPTY);
-            ingredients.replaceAll((_it) -> Ingredient.CONTENTS_STREAM_CODEC.decode(packetBuffer));
+            NonNullList<Ingredient> ingredients = NonNullList.createWithCapacity(i);
+            for (int ingredientIndex = 0; ingredientIndex < i; ingredientIndex++) {
+                ingredients.add(Ingredient.CONTENTS_STREAM_CODEC.decode(packetBuffer));
+            }
             ItemStack cup = ItemStack.STREAM_CODEC.decode(packetBuffer);
             int brewingTime = packetBuffer.readVarInt();
             ItemStack result = ItemStack.STREAM_CODEC.decode(packetBuffer);

@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
@@ -21,7 +21,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class ColoredLightsBlock extends Block {
-    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final IntegerProperty TYPE = IntegerProperty.create("type", 1, 8);
 
     private static final VoxelShape CENTER_NORTH_SOUTH = box(0.0, 10.5, 7.0, 16.0, 16.0, 9.0);
@@ -33,15 +33,8 @@ public class ColoredLightsBlock extends Block {
 
     private final boolean sideMounted;
 
-    public ColoredLightsBlock(boolean sideMounted) {
-        super(Properties.of()
-                .mapColor(MapColor.WOOD)
-                .strength(1.0F)
-                .sound(SoundType.WOOD)
-                .lightLevel(state -> 15)
-                .noCollission()
-                .noOcclusion()
-                .pushReaction(PushReaction.DESTROY));
+    public ColoredLightsBlock(Properties properties, boolean sideMounted) {
+        super(properties);
         this.sideMounted = sideMounted;
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(TYPE, 1));
     }

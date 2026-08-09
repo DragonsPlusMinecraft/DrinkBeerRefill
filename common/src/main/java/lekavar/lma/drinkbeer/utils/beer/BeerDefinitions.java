@@ -8,7 +8,7 @@ import java.util.List;
 
 public final class BeerDefinitions {
     public static final BeerDefinition BEER_MUG = new BeerDefinition(
-            1, 2, () -> new MobEffectInstance(MobEffects.DIG_SPEED, 1200), true, BeerSpecialAction.NONE);
+            1, 2, () -> new MobEffectInstance(MobEffects.HASTE, 1200), true, BeerSpecialAction.NONE);
     public static final BeerDefinition BLAZE_STOUT = new BeerDefinition(
             2, 1, () -> new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 1800), true, BeerSpecialAction.NONE);
     public static final BeerDefinition BLAZE_MILK_STOUT = new BeerDefinition(

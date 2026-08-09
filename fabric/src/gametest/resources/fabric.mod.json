@@ -7,11 +7,15 @@
   "entrypoints": {
     "fabric-gametest": [
       "lekavar.lma.drinkbeer.gametest.FabricHolidayGameTests"
+    ],
+    "fabric-client-gametest": [
+      "lekavar.lma.drinkbeer.compat.jei.FabricClientSmokeTest"
     ]
   },
   "depends": {
     "drinkbeer": "*",
+    "fabric-client-gametest-api-v1": "*",
     "fabric-gametest-api-v1": "*",
-    "minecraft": "~1.21.1"
+    "minecraft": "=1.21.11"
   }
 }

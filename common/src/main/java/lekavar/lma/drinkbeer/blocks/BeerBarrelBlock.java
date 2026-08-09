@@ -23,7 +23,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -32,12 +32,12 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import javax.annotation.Nullable;
 
 public class BeerBarrelBlock extends BaseEntityBlock {
-    public static final MapCodec<BeerBarrelBlock> CODEC = simpleCodec(pro->new BeerBarrelBlock());
-    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final MapCodec<BeerBarrelBlock> CODEC = simpleCodec(BeerBarrelBlock::new);
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     protected static final VoxelShape SHAPE = Block.box(1, 0, 1, 15, 15, 15);
 
-    public BeerBarrelBlock() {
-        super(BlockBehaviour.Properties.of().ignitedByLava().mapColor(MapColor.WOOD).strength(2.0f).noOcclusion());
+    public BeerBarrelBlock(Properties properties) {
+        super(properties);
         this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.NORTH));
     }
 
@@ -85,7 +85,7 @@ public class BeerBarrelBlock extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!world.isClientSide) {
+        if (!world.isClientSide()) {
             world.playSound(null, pos, SoundEvents.BARREL_OPEN, SoundSource.BLOCKS, 1f, 1f);
 
             BlockEntity blockentity = world.getBlockEntity(pos);
@@ -95,16 +95,7 @@ public class BeerBarrelBlock extends BaseEntityBlock {
             return InteractionResult.CONSUME;
 
         }
-        return InteractionResult.sidedSuccess(world.isClientSide);
-    }
-
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof BeerBarrelBlockEntity blockEntity) {
-            Containers.dropContents(level, pos, blockEntity.getBrewingInventory());
-            level.updateNeighbourForOutputSignal(pos, this);
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
+        return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     @Override

@@ -1,28 +1,10 @@
 {
   "type": "drinkbeer:brewing",
   "ingredients": [
-    [
-      {
-        "item": "minecraft:wheat"
-      },
-      {
-        "tag": "c:crops/wheat"
-      }
-    ],
-    [
-      {
-        "item": "minecraft:wheat"
-      },
-      {
-        "tag": "c:crops/wheat"
-      }
-    ],
-    {
-      "item": "minecraft:blaze_powder"
-    },
-    {
-      "item": "minecraft:water_bucket"
-    }
+    "#c:crops/wheat",
+    "#c:crops/wheat",
+    "minecraft:blaze_powder",
+    "minecraft:water_bucket"
   ],
   "cup": {
     "id": "drinkbeer:empty_beer_mug",

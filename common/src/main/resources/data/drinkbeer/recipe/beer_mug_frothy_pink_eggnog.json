@@ -1,33 +1,10 @@
 {
   "type": "drinkbeer:brewing",
   "ingredients": [
-    [
-      {
-        "item": "minecraft:wheat"
-      },
-      {
-        "tag": "c:crops/wheat"
-      }
-    ],
-    [
-      {
-        "item": "minecraft:beetroot"
-      },
-      {
-        "tag": "c:crops/beetroot"
-      }
-    ],
-    [
-      {
-        "item": "minecraft:egg"
-      },
-      {
-        "tag": "c:eggs"
-      }
-    ],
-    {
-      "item": "minecraft:milk_bucket"
-    }
+    "#c:crops/wheat",
+    "#c:crops/beetroot",
+    "#c:eggs",
+    "minecraft:milk_bucket"
   ],
   "cup": {
     "id": "drinkbeer:empty_beer_mug",

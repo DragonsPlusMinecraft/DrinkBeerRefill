@@ -11,6 +11,7 @@ import lekavar.lma.drinkbeer.registries.BlockEntityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
@@ -24,8 +25,8 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -33,6 +34,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.function.Function;
 
 public final class NeoForgePlatform implements PlatformHooks {
     private final IEventBus modEventBus;
@@ -48,9 +50,11 @@ public final class NeoForgePlatform implements PlatformHooks {
     public <T, R extends T> RegistryHandle<R> register(
             Registry<T> registry,
             String path,
-            Supplier<? extends R> factory
+            Function<ResourceKey<T>, ? extends R> factory
     ) {
-        DeferredHolder<T, R> holder = registrar(registry).register(path, factory);
+        DeferredHolder<T, R> holder = registrar(registry).register(path, id ->
+                factory.apply(ResourceKey.create(registry.key(), id))
+        );
         return new NeoForgeRegistryHandle<>(holder);
     }
 
@@ -71,7 +75,7 @@ public final class NeoForgePlatform implements PlatformHooks {
             String path,
             ExtendedMenuFactory<T> factory
     ) {
-        return register(BuiltInRegistries.MENU, path, () -> IMenuTypeExtension.create(
+        return register(BuiltInRegistries.MENU, path, ignored -> IMenuTypeExtension.create(
                 (containerId, inventory, data) -> factory.create(containerId, inventory, data.readBlockPos())
         ));
     }
@@ -83,12 +87,12 @@ public final class NeoForgePlatform implements PlatformHooks {
             BlockEntityFactory<T> factory,
             Supplier<? extends Block>... validBlocks
     ) {
-        return register(BuiltInRegistries.BLOCK_ENTITY_TYPE, path, () -> {
+        return register(BuiltInRegistries.BLOCK_ENTITY_TYPE, path, ignored -> {
             Block[] blocks = new Block[validBlocks.length];
             for (int i = 0; i < validBlocks.length; i++) {
                 blocks[i] = validBlocks[i].get();
             }
-            return BlockEntityType.Builder.of(factory::create, blocks).build(null);
+            return new BlockEntityType<>(factory::create, blocks);
         });
     }
 
@@ -108,12 +112,12 @@ public final class NeoForgePlatform implements PlatformHooks {
 
     private void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(
-                Capabilities.ItemHandler.BLOCK,
+                Capabilities.Item.BLOCK,
                 BlockEntityRegistry.BARTENDING_TABLE_TILEENTITY.get(),
                 (blockEntity, direction) -> new NeoForgeItemHandlerAdapter(blockEntity.getItemHandler(direction))
         );
         event.registerBlockEntity(
-                Capabilities.ItemHandler.BLOCK,
+                Capabilities.Item.BLOCK,
                 BlockEntityRegistry.BEER_BARREL_TILEENTITY.get(),
                 (blockEntity, direction) -> new NeoForgeItemHandlerAdapter(blockEntity.getItemHandler(direction))
         );
@@ -134,6 +138,6 @@ public final class NeoForgePlatform implements PlatformHooks {
 
     @Override
     public void sendRefreshTradeBox(BlockPos pos) {
-        PacketDistributor.sendToServer(new RefreshTradeBoxPayload(pos));
+        ClientPacketDistributor.sendToServer(new RefreshTradeBoxPayload(pos));
     }
 }

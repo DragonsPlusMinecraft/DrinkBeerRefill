@@ -1,8 +1,8 @@
 {
 	"render_type": "minecraft:cutout",
 	"credit": "Made with Blockbench",
-	"parent": "minecraft:block/cube_column",
 	"textures": {
+        "transparent": "drinkbeer:block/transparent",
 		"0": "drinkbeer:block/star_of_bethlehem",
 		"particle": "drinkbeer:block/star_of_bethlehem"
 	},
@@ -12,12 +12,12 @@
 			"from": [8, 0, 0],
 			"to": [8, 16, 16],
 			"faces": {
-				"north": {"uv": [0, 0, 0, 10], "texture": "#missing"},
+				"north": {"uv": [0, 0, 0, 10], "texture": "#transparent"},
 				"east": {"uv": [0, 0, 15, 15], "texture": "#0"},
-				"south": {"uv": [0, 0, 0, 10], "texture": "#missing"},
+				"south": {"uv": [0, 0, 0, 10], "texture": "#transparent"},
 				"west": {"uv": [0, 0, 15, 15], "texture": "#0"},
-				"up": {"uv": [0, 0, 0, 10], "texture": "#missing"},
-				"down": {"uv": [0, 0, 0, 10], "texture": "#missing"}
+				"up": {"uv": [0, 0, 0, 10], "texture": "#transparent"},
+				"down": {"uv": [0, 0, 0, 10], "texture": "#transparent"}
 			}
 		},
 		{
@@ -26,11 +26,11 @@
 			"to": [16, 16, 8],
 			"faces": {
 				"north": {"uv": [0, 0, 15, 15], "texture": "#0"},
-				"east": {"uv": [0, 0, 0, 10], "texture": "#missing"},
+				"east": {"uv": [0, 0, 0, 10], "texture": "#transparent"},
 				"south": {"uv": [0, 0, 15, 15], "texture": "#0"},
-				"west": {"uv": [0, 0, 0, 10], "texture": "#missing"},
-				"up": {"uv": [0, 0, 0, 10], "rotation": 270, "texture": "#missing"},
-				"down": {"uv": [0, 0, 0, 10], "rotation": 90, "texture": "#missing"}
+				"west": {"uv": [0, 0, 0, 10], "texture": "#transparent"},
+				"up": {"uv": [0, 0, 0, 10], "rotation": 270, "texture": "#transparent"},
+				"down": {"uv": [0, 0, 0, 10], "rotation": 90, "texture": "#transparent"}
 			}
 		}
 	],

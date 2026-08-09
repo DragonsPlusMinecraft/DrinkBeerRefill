@@ -16,6 +16,7 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
     modCompileOnly "mezz.jei:jei-${jei_minecraft_version}-fabric-api:${jei_version}"
+    modCompileOnly "mezz.jei:jei-${jei_minecraft_version}-fabric:${jei_version}"
     modLocalRuntime "mezz.jei:jei-${jei_minecraft_version}-fabric:${jei_version}"
 
     // Fabric Loader JUnit 0.19.3 is built against JUnit Platform 1.10;
@@ -30,12 +31,12 @@ loom {
         client {
             client()
             name = 'Fabric Client'
-            runDir = 'runs/client'
+            runDir = 'build/runs/client'
         }
         server {
             server()
             name = 'Fabric Server'
-            runDir = 'runs/server'
+            runDir = 'build/runs/server'
             programArg '--nogui'
         }
     }
@@ -46,9 +47,60 @@ fabricApi {
         createSourceSet = true
         modId = "${mod_id}-gametest"
         enableGameTests = true
-        enableClientGameTests = false
+        enableClientGameTests = true
         eula = true
     }
+}
+
+tasks.register('prepareClientGameTestOptions', Copy) {
+    dependsOn tasks.named('deleteGameTestRunDir')
+    from layout.projectDirectory.file('src/gametest/options.txt')
+    into layout.buildDirectory.dir('run/clientGameTest')
+}
+
+def expectedClientBackend = providers.gradleProperty('clientBackend').orElse('OpenGL').get()
+
+tasks.named('runClientGameTest') {
+    dependsOn tasks.named('prepareClientGameTestOptions')
+    systemProperty 'drinkbeer.expectedBackend', expectedClientBackend
+}
+
+def windowsClientWatchdog = rootProject.layout.projectDirectory.file('tools/client-test/windows-client-watchdog.ps1').asFile.absolutePath
+def fabricClientEvidence = layout.buildDirectory.dir('run/clientGameTest/client-test-evidence').get().asFile.absolutePath
+def isWindowsHost = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')
+
+def startFabricClientWatchdog = tasks.register('startFabricClientWatchdog', Exec) {
+    group = 'verification'
+    description = 'Starts the PID-scoped visible-window watchdog for the Fabric client test.'
+    dependsOn tasks.named('prepareClientGameTestOptions')
+    onlyIf { isWindowsHost }
+    commandLine 'powershell.exe', '-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass',
+            '-File', windowsClientWatchdog,
+            '-Action', 'Start',
+            '-EvidenceDirectory', fabricClientEvidence,
+            '-Loader', 'fabric',
+            '-ExpectedBackend', expectedClientBackend
+}
+
+def awaitFabricClientWatchdog = tasks.register('awaitFabricClientWatchdog', Exec) {
+    group = 'verification'
+    description = 'Requires the Fabric client to enter a world in a visible PID-owned window and exit cleanly.'
+    onlyIf { isWindowsHost }
+    commandLine 'powershell.exe', '-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass',
+            '-File', windowsClientWatchdog,
+            '-Action', 'Await',
+            '-EvidenceDirectory', fabricClientEvidence,
+            '-Loader', 'fabric',
+            '-ExpectedBackend', expectedClientBackend
+}
+
+tasks.named('runClientGameTest') {
+    dependsOn startFabricClientWatchdog
+    finalizedBy awaitFabricClientWatchdog
+}
+
+awaitFabricClientWatchdog.configure {
+    mustRunAfter tasks.named('runClientGameTest')
 }
 
 sourceSets.named('gametest') {

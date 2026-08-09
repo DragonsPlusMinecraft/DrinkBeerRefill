@@ -22,7 +22,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -31,12 +31,12 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import javax.annotation.Nullable;
 
 public class TradeboxBlock extends BaseEntityBlock {
-    public static final MapCodec<TradeboxBlock> CODEC = simpleCodec(pro->new TradeboxBlock());
-    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final MapCodec<TradeboxBlock> CODEC = simpleCodec(TradeboxBlock::new);
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final VoxelShape SHAPE = Block.box(0, 0.01, 0, 16, 16, 16);
 
-    public TradeboxBlock() {
-        super(Properties.of().ignitedByLava().mapColor(MapColor.WOOD).strength(2.0f).noOcclusion());
+    public TradeboxBlock(Properties properties) {
+        super(properties);
         this.registerDefaultState(this.defaultBlockState()
                 .setValue(FACING, Direction.NORTH));
     }
@@ -84,7 +84,7 @@ public class TradeboxBlock extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             BlockEntity blockentity = level.getBlockEntity(pos);
             if (blockentity instanceof TradeBoxBlockEntity tradeBoxBlockEntity) {
                 level.playSound(null, pos, SoundEventRegistry.TRADEBOX_OPEN.get(), SoundSource.BLOCKS, 0.6f, 1f);
@@ -93,7 +93,7 @@ public class TradeboxBlock extends BaseEntityBlock {
 
             return InteractionResult.CONSUME;
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     @Override

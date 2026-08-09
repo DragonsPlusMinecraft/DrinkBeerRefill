@@ -4,7 +4,7 @@ import lekavar.lma.drinkbeer.DrinkBeer;
 import lekavar.lma.drinkbeer.platform.Registration;
 import lekavar.lma.drinkbeer.platform.RegistryProvider;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 
 import java.util.function.Supplier;
@@ -32,7 +32,7 @@ public class SoundEventRegistry {
 
 
     private static Supplier<SoundEvent> register(String name) {
-        return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(DrinkBeer.MOD_ID, name)));
+        return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(DrinkBeer.MOD_ID, name)));
     }
 
     public static void init() {

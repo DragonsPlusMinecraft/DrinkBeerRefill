@@ -1,18 +1,18 @@
 package lekavar.lma.drinkbeer.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import lekavar.lma.drinkbeer.DrinkBeer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 import java.awt.*;
 
 public class BeerBarrelScreen extends AbstractContainerScreen<BeerBarrelMenu> {
 
-    private final ResourceLocation BEER_BARREL_CONTAINER_RESOURCE = ResourceLocation.fromNamespaceAndPath(DrinkBeer.MOD_ID, "textures/gui/container/beer_barrel.png");
+    private final Identifier BEER_BARREL_CONTAINER_RESOURCE = Identifier.fromNamespaceAndPath(DrinkBeer.MOD_ID, "textures/gui/container/beer_barrel.png");
     private final int textureWidth = 176;
     private final int textureHeight = 166;
     private Inventory inventory;
@@ -27,10 +27,10 @@ public class BeerBarrelScreen extends AbstractContainerScreen<BeerBarrelMenu> {
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.setShaderTexture(0, BEER_BARREL_CONTAINER_RESOURCE);
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
-        guiGraphics.blit(BEER_BARREL_CONTAINER_RESOURCE, i, j, 0, 0, imageWidth, imageHeight);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, BEER_BARREL_CONTAINER_RESOURCE,
+                i, j, 0.0F, 0.0F, imageWidth, imageHeight, 256, 256);
     }
 
     @Override

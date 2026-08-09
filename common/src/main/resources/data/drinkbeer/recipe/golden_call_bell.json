@@ -6,15 +6,9 @@
     "Z  "
   ],
   "key": {
-    "X": {
-      "item": "minecraft:gold_nugget"
-    },
-    "Y": {
-      "item": "minecraft:gold_ingot"
-    },
-    "Z": {
-      "item": "minecraft:dark_oak_planks"
-    }
+    "X": "minecraft:gold_nugget",
+    "Y": "minecraft:gold_ingot",
+    "Z": "minecraft:dark_oak_planks"
   },
   "result": {
     "id": "drinkbeer:golden_call_bell",

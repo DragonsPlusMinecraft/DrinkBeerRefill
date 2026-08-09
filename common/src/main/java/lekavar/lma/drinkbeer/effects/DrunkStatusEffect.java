@@ -2,6 +2,7 @@ package lekavar.lma.drinkbeer.effects;
 
 import lekavar.lma.drinkbeer.registries.MobEffectRegistry;
 import net.minecraft.util.Mth;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -61,7 +62,7 @@ public class DrunkStatusEffect extends MobEffect {
     }
 
     @Override
-    public boolean applyEffectTick(LivingEntity entity, int amplifier) {
+    public boolean applyEffectTick(ServerLevel level, LivingEntity entity, int amplifier) {
         MobEffectInstance currentEffect = entity.getEffect(MobEffectRegistry.DRUNK);
         if (currentEffect == null) {
             return false;
@@ -84,14 +85,14 @@ public class DrunkStatusEffect extends MobEffect {
 
     private void giveHarmfulStatusEffects(LivingEntity entity, int amplifier, int time) {
         if (amplifier >= MAX_DRUNK_AMPLIFIER) {
-            entity.addEffect(new MobEffectInstance(MobEffects.CONFUSION, time, 0, false, VISIBLE));
-            entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, time, MAX_DRUNK_AMPLIFIER - 1, false, VISIBLE));
+            entity.addEffect(new MobEffectInstance(MobEffects.NAUSEA, time, 0, false, VISIBLE));
+            entity.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, time, MAX_DRUNK_AMPLIFIER - 1, false, VISIBLE));
         } else if (time % HARMFUL_STATUS_EFFECT_INTERVALS[amplifier] == 0) {
             int nauseaDuration = NAUSEA_DURATIONS[amplifier];
             int slownessDuration = SLOWNESS_DURATIONS[amplifier];
-            entity.addEffect(new MobEffectInstance(MobEffects.CONFUSION, nauseaDuration, 0, false, VISIBLE));
+            entity.addEffect(new MobEffectInstance(MobEffects.NAUSEA, nauseaDuration, 0, false, VISIBLE));
             if (amplifier > 0) {
-                entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, slownessDuration, amplifier - 1, false, VISIBLE));
+                entity.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, slownessDuration, amplifier - 1, false, VISIBLE));
             }
         }
     }

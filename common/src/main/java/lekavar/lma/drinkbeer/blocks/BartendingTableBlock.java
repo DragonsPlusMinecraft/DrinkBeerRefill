@@ -11,10 +11,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -29,7 +27,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
@@ -39,15 +37,15 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import javax.annotation.Nullable;
 
 public class BartendingTableBlock extends BaseEntityBlock {
-    public static final MapCodec<BartendingTableBlock> CODEC = simpleCodec(pro->new BartendingTableBlock());
-    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final MapCodec<BartendingTableBlock> CODEC = simpleCodec(BartendingTableBlock::new);
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty OPENED = BooleanProperty.create("opened");
     public static final IntegerProperty TYPE = IntegerProperty.create("type", 1, 2);
 
     public final static VoxelShape SHAPE = Block.box(0, 0.01, 0, 16, 16, 16);
 
-    public BartendingTableBlock() {
-        super(BlockBehaviour.Properties.of().ignitedByLava().mapColor(MapColor.WOOD).strength(2.0f).noOcclusion());
+    public BartendingTableBlock(Properties properties) {
+        super(properties);
         this.registerDefaultState(this.defaultBlockState()
                 .setValue(FACING, Direction.NORTH)
                 .setValue(OPENED, true)
@@ -103,22 +101,22 @@ public class BartendingTableBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (player.isShiftKeyDown()) {
             if (!world.isClientSide()) {
                 toggleDrawer(state, world, pos);
             }
-            return ItemInteractionResult.sidedSuccess(world.isClientSide());
+            return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
 
         ItemStack itemStack = player.getItemInHand(hand);
         boolean isBeer = itemStack.is(DrinkBeerTags.BEERS);
         boolean isSpice = itemStack.getItem() instanceof SpiceBlockItem;
         if (!isBeer && !isSpice) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         if (world.isClientSide()) {
-            return ItemInteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
         if (world.getBlockEntity(pos) instanceof BartendingTableBlockEntity bartendingTableBlockEntity) {
             BartendingTableBlockEntity.TableActionResult result;
@@ -126,7 +124,7 @@ public class BartendingTableBlock extends BaseEntityBlock {
                 result = bartendingTableBlockEntity.placeBeer(itemStack);
             } else if (!state.getValue(OPENED)) {
                 player.displayClientMessage(Component.translatable("message.drinkbeer.bartending_table.drawer_closed"), true);
-                return ItemInteractionResult.CONSUME;
+                return InteractionResult.CONSUME;
             } else {
                 result = bartendingTableBlockEntity.putSpice(itemStack);
             }
@@ -140,7 +138,7 @@ public class BartendingTableBlock extends BaseEntityBlock {
                 showActionFailure(player, result);
             }
         }
-        return ItemInteractionResult.CONSUME;
+        return InteractionResult.CONSUME;
     }
 
     private static boolean isDrawerHit(BlockState state, BlockHitResult hitResult) {
@@ -163,15 +161,6 @@ public class BartendingTableBlock extends BaseEntityBlock {
             default -> "message.drinkbeer.bartending_table.invalid_item";
         };
         player.displayClientMessage(Component.translatable(translationKey), true);
-    }
-
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof BartendingTableBlockEntity blockEntity) {
-            Containers.dropContents(level, pos, blockEntity.getInventory());
-            level.updateNeighbourForOutputSignal(pos, this);
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override

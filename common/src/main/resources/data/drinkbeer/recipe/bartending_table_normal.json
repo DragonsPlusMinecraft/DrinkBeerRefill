@@ -6,12 +6,8 @@
     "XXX"
   ],
   "key": {
-    "X": {
-      "tag": "minecraft:planks"
-    },
-    "Y": {
-      "item": "drinkbeer:empty_beer_mug"
-    }
+    "X": "#minecraft:planks",
+    "Y": "drinkbeer:empty_beer_mug"
   },
   "result": {
     "id": "drinkbeer:bartending_table_normal",

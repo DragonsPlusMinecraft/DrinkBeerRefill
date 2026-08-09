@@ -15,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
@@ -26,12 +27,14 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.MilkBucketItem;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -83,6 +86,15 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
 
     public BeerBarrelBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.BEER_BARREL_TILEENTITY.get(), pos, state);
+    }
+
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (level != null) {
+            Containers.dropContents(level, pos, brewingInventory);
+            level.updateNeighbourForOutputSignal(pos, state.getBlock());
+        }
     }
 
     public void tickServer() {
@@ -160,10 +172,11 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
 
     @Nullable
     private RecipeHolder<BrewingRecipe> findRecipe() {
-        if (level == null) {
+        RecipeManager recipeManager = getRecipeManager();
+        if (recipeManager == null || level == null) {
             return null;
         }
-        return level.getRecipeManager()
+        return recipeManager
                 .getRecipeFor(RecipeRegistry.RECIPE_TYPE_BREWING.get(), brewingInventory, level)
                 .orElse(null);
     }
@@ -196,7 +209,7 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     private boolean shouldReturnBucket(ItemStack item) {
-        return item.getItem() instanceof BucketItem || item.getItem() instanceof MilkBucketItem;
+        return item.getItem() instanceof BucketItem || item.is(Items.MILK_BUCKET);
     }
 
     public BrewingInventory getBrewingInventory() {
@@ -238,23 +251,42 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     private boolean isValidIngredient(ItemStack stack) {
-        if (level == null) {
+        List<RecipeHolder<BrewingRecipe>> recipes = getBrewingRecipes();
+        if (recipes.isEmpty() && !(level instanceof ServerLevel)) {
             return !stack.is(ItemRegistry.EMPTY_BEER_MUG.get());
         }
-        return level.getRecipeManager().getAllRecipesFor(RecipeRegistry.RECIPE_TYPE_BREWING.get()).stream()
+        return recipes.stream()
                 .map(RecipeHolder::value)
                 .flatMap(recipe -> recipe.getIngredients().stream())
                 .anyMatch(ingredient -> ingredient.test(stack));
     }
 
     private boolean isValidCup(ItemStack stack) {
-        if (level == null) {
+        List<RecipeHolder<BrewingRecipe>> recipes = getBrewingRecipes();
+        if (recipes.isEmpty() && !(level instanceof ServerLevel)) {
             return stack.is(ItemRegistry.EMPTY_BEER_MUG.get());
         }
-        return level.getRecipeManager().getAllRecipesFor(RecipeRegistry.RECIPE_TYPE_BREWING.get()).stream()
+        return recipes.stream()
                 .map(RecipeHolder::value)
                 .map(BrewingRecipe::getBeerCup)
                 .anyMatch(cup -> ItemStack.isSameItemSameComponents(cup, stack));
+    }
+
+    @Nullable
+    private RecipeManager getRecipeManager() {
+        return level instanceof ServerLevel serverLevel ? serverLevel.recipeAccess() : null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<RecipeHolder<BrewingRecipe>> getBrewingRecipes() {
+        RecipeManager recipeManager = getRecipeManager();
+        if (recipeManager == null) {
+            return List.of();
+        }
+        return recipeManager.getRecipes().stream()
+                .filter(holder -> holder.value().getType() == RecipeRegistry.RECIPE_TYPE_BREWING.get())
+                .map(holder -> (RecipeHolder<BrewingRecipe>) (RecipeHolder<?>) holder)
+                .toList();
     }
 
     public void updateBE() {
@@ -268,22 +300,22 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     @Override
-    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        ContainerHelper.saveAllItems(tag, brewingInventory.getItems(), registries);
-        tag.putInt("RemainingBrewTime", remainingBrewTime);
-        tag.putInt("statusCode", statusCode);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        ContainerHelper.saveAllItems(output, brewingInventory.getItems());
+        output.putInt("RemainingBrewTime", remainingBrewTime);
+        output.putInt("statusCode", statusCode);
     }
 
     @Override
-    public void loadAdditional(@Nonnull CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        remainingBrewTime = Math.max(0, tag.getInt("RemainingBrewTime"));
-        statusCode = tag.getInt("statusCode");
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        remainingBrewTime = Math.max(0, input.getIntOr("RemainingBrewTime", 0));
+        statusCode = input.getIntOr("statusCode", STATUS_WAITING);
         if (statusCode < STATUS_WAITING || statusCode > STATUS_READY) {
             statusCode = STATUS_WAITING;
         }
-        ContainerHelper.loadAllItems(tag, brewingInventory.getItems(), registries);
+        ContainerHelper.loadAllItems(input, brewingInventory.getItems());
     }
 
     @Override
@@ -305,11 +337,7 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = super.getUpdateTag(registries);
-        ContainerHelper.saveAllItems(tag, brewingInventory.getItems(), registries);
-        tag.putInt("RemainingBrewTime", remainingBrewTime);
-        tag.putInt("statusCode", statusCode);
-        return tag;
+        return saveCustomOnly(registries);
     }
 
     public static class BrewingInventory extends SimpleContainer implements IBrewingInventory {

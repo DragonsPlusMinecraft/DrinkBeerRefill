@@ -5,10 +5,10 @@
     " W "
   ],
   "key": {
-    "W": { "item": "minecraft:lantern" },
-    "X": { "item": "minecraft:red_dye" },
-    "Y": { "item": "minecraft:yellow_dye" },
-    "Z": { "item": "minecraft:blue_dye" }
+    "W": "minecraft:lantern",
+    "X": "minecraft:red_dye",
+    "Y": "minecraft:yellow_dye",
+    "Z": "minecraft:blue_dye"
   },
   "result": {
     "id": "drinkbeer:colored_lights",

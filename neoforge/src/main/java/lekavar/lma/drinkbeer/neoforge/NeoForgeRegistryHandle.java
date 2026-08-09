@@ -2,7 +2,7 @@ package lekavar.lma.drinkbeer.neoforge;
 
 import lekavar.lma.drinkbeer.platform.RegistryHandle;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 final class NeoForgeRegistryHandle<B, T extends B> implements RegistryHandle<T> {
@@ -18,7 +18,7 @@ final class NeoForgeRegistryHandle<B, T extends B> implements RegistryHandle<T> 
     }
 
     @Override
-    public ResourceLocation id() {
+    public Identifier id() {
         return holder.getId();
     }
 

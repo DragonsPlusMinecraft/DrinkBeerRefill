@@ -21,13 +21,8 @@ public class StarOfBethlehemBlock extends Block {
 
     private final boolean great;
 
-    public StarOfBethlehemBlock(boolean great) {
-        super(Properties.of()
-                .mapColor(MapColor.METAL)
-                .strength(3.0F)
-                .sound(SoundType.METAL)
-                .lightLevel(state -> 15)
-                .noOcclusion());
+    public StarOfBethlehemBlock(Properties properties, boolean great) {
+        super(properties);
         this.great = great;
     }
 

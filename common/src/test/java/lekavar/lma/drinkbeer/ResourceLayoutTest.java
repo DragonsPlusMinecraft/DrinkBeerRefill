@@ -62,6 +62,21 @@ class ResourceLayoutTest {
     }
 
     @Test
+    void recipesUseMinecraft12111IngredientSyntax() throws IOException {
+        Path recipeDirectory = RESOURCES.resolve(Path.of("data", DrinkBeer.MOD_ID, "recipe"));
+        try (var paths = Files.list(recipeDirectory)) {
+            for (Path recipePath : paths.filter(path -> path.toString().endsWith(".json")).toList()) {
+                JsonElement recipe;
+                try (Reader reader = Files.newBufferedReader(recipePath)) {
+                    recipe = JsonParser.parseReader(reader);
+                }
+                assertFalse(containsLegacyIngredientObject(recipe),
+                        () -> recipePath + " still uses pre-1.21.11 {item:...}/{tag:...} ingredients");
+            }
+        }
+    }
+
+    @Test
     void bundledBrewingRecipesHaveCompleteInputsAndBalancedOutputCounts() throws IOException {
         Path recipeDirectory = RESOURCES.resolve(Path.of("data", DrinkBeer.MOD_ID, "recipe"));
         List<Path> brewingRecipes;
@@ -157,6 +172,10 @@ class ResourceLayoutTest {
                     continue;
                 }
                 var object = root.getAsJsonObject();
+                for (String texture : stringProperties(root, "texture")) {
+                    assertFalse(texture.equals("#missing"),
+                            () -> model + " contains an unresolved Blockbench #missing texture slot");
+                }
                 if (object.has("parent")) {
                     assertLocalAssetReference(assets, object.get("parent").getAsString(), "models", ".json", model);
                 }
@@ -205,6 +224,24 @@ class ResourceLayoutTest {
                 collectStringProperties(child, propertyName, values);
             }
         }
+    }
+
+    private static boolean containsLegacyIngredientObject(JsonElement element) {
+        if (element.isJsonObject()) {
+            var object = element.getAsJsonObject();
+            if (object.has("item") || object.has("tag")) {
+                return true;
+            }
+            return object.asMap().values().stream().anyMatch(ResourceLayoutTest::containsLegacyIngredientObject);
+        }
+        if (element.isJsonArray()) {
+            for (JsonElement child : element.getAsJsonArray()) {
+                if (containsLegacyIngredientObject(child)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static void assertLocalAssetReference(Path assets, String reference, String directory,

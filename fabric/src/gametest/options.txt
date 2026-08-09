@@ -1,0 +1,7 @@
+version:4671
+renderDistance:8
+simulationDistance:5
+maxFps:120
+pauseOnLostFocus:false
+onboardAccessibility:false
+skipMultiplayerWarning:true

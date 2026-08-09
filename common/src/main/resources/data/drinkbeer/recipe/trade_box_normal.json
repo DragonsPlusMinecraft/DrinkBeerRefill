@@ -6,12 +6,8 @@
     "X X"
   ],
   "key": {
-    "X": {
-      "tag": "minecraft:planks"
-    },
-    "Y": {
-      "item": "minecraft:emerald"
-    }
+    "X": "#minecraft:planks",
+    "Y": "minecraft:emerald"
   },
   "result": {
     "id": "drinkbeer:trade_box_normal",

@@ -6,9 +6,9 @@
     "YXY"
   ],
   "key": {
-    "X": { "item": "minecraft:gold_ingot" },
-    "Y": { "item": "minecraft:blaze_rod" },
-    "Z": { "item": "drinkbeer:star_of_bethlehem" }
+    "X": "minecraft:gold_ingot",
+    "Y": "minecraft:blaze_rod",
+    "Z": "drinkbeer:star_of_bethlehem"
   },
   "result": {
     "id": "drinkbeer:the_great_star_of_bethlehem",

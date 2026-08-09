@@ -1,12 +1,29 @@
+import lekavar.lma.build.AuditMinecraftLogsTask
+import lekavar.lma.build.GenerateChecksumsTask
+import lekavar.lma.build.VerifyClientEvidenceTask
+import lekavar.lma.build.VerifyCurrentWorldCompatibilityTask
+import lekavar.lma.build.VerifyModArtifactsTask
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
+
 plugins {
     id 'base'
     id 'net.neoforged.moddev' version '2.0.143' apply false
-    id 'net.fabricmc.fabric-loom-remap' version '1.14.10' apply false
+    id 'net.fabricmc.fabric-loom-remap' version '1.17.19' apply false
     id 'me.modmuss50.mod-publish-plugin' version '2.1.1' apply false
 }
 
 group = mod_group_id
 version = mod_version
+
+allprojects {
+    dependencyLocking {
+        lockAllConfigurations()
+    }
+    tasks.withType(AbstractArchiveTask).configureEach {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
+}
 
 tasks.named('assemble') {
     dependsOn(':fabric:assemble', ':neoforge:assemble')
@@ -24,4 +41,182 @@ tasks.register('publishAllMods') {
     group = 'publishing'
     description = 'Publishes the Fabric and NeoForge artifacts.'
     dependsOn(':fabric:publishMods', ':neoforge:publishMods')
+}
+
+def expectedFabricArtifact = project(':fabric').layout.buildDirectory.file(
+        "libs/drinkbeer-refill-${minecraft_version}-fabric-${mod_version}+fabric.jar")
+def expectedNeoForgeArtifact = project(':neoforge').layout.buildDirectory.file(
+        "libs/drinkbeer-refill-${minecraft_version}-neoforge-${mod_version}+neoforge.jar")
+def minecraftLogAllowlist = layout.projectDirectory.file('config/verification/minecraft-log-allowlist.json')
+
+def verifyUnit = tasks.register('verifyUnit') {
+    group = 'verification'
+    description = 'Compiles both loaders and runs loader-backed JUnit, resource, registry, codec, config, and data tests.'
+    dependsOn(':fabric:test', ':neoforge:test', ':fabric:assemble', ':neoforge:assemble')
+}
+
+def auditServerLogs = tasks.register('auditServerLogs', AuditMinecraftLogsTask) {
+    group = 'verification'
+    description = 'Rejects unreviewed server GameTest errors and relevant exceptions.'
+    dependsOn(':fabric:runGameTest', ':neoforge:runGameTestServer')
+    logFiles.from(
+            project(':fabric').layout.buildDirectory.file('run/gameTest/logs/latest.log'),
+            project(':neoforge').layout.buildDirectory.file('run/gameTestServer/logs/latest.log')
+    )
+    allowlistFile.set(minecraftLogAllowlist)
+    reportFile.set(layout.buildDirectory.file('reports/verification/server-log-audit.json'))
+}
+
+def verifyServer = tasks.register('verifyServer') {
+    group = 'verification'
+    description = 'Runs all Fabric and NeoForge dedicated-server GameTests and audits their logs.'
+    dependsOn(':fabric:runGameTest', ':neoforge:runGameTestServer', auditServerLogs)
+}
+
+def auditFabricClientLogs = tasks.register('auditFabricClientLogs', AuditMinecraftLogsTask) {
+    group = 'verification'
+    description = 'Rejects unreviewed Fabric client errors, missing resources, and relevant exceptions.'
+    dependsOn(':fabric:runClientGameTest')
+    logFiles.from(project(':fabric').layout.buildDirectory.file('run/clientGameTest/logs/latest.log'))
+    allowlistFile.set(minecraftLogAllowlist)
+    reportFile.set(layout.buildDirectory.file('reports/verification/fabric-client-log-audit.json'))
+}
+
+def auditNeoForgeClientLogs = tasks.register('auditNeoForgeClientLogs', AuditMinecraftLogsTask) {
+    group = 'verification'
+    description = 'Rejects unreviewed NeoForge client errors, missing resources, and relevant exceptions.'
+    dependsOn(':neoforge:runClientSmoke')
+    logFiles.from(project(':neoforge').layout.buildDirectory.file('run/clientSmoke/logs/latest.log'))
+    allowlistFile.set(minecraftLogAllowlist)
+    reportFile.set(layout.buildDirectory.file('reports/verification/neoforge-client-log-audit.json'))
+}
+
+def verifyFabricClientEvidence = tasks.register('verifyFabricClientEvidence', VerifyClientEvidenceTask) {
+    group = 'verification'
+    description = 'Validates Fabric world-entry, rendering, GUI, JEI, backend, screenshots, PID, and save evidence.'
+    dependsOn(':fabric:runClientGameTest', ':fabric:awaitFabricClientWatchdog')
+    successMarkers.from(project(':fabric').layout.buildDirectory.file(
+            'run/clientGameTest/client-test-evidence/success.json'))
+    expectedMinecraftVersion.set(minecraft_version)
+    expectedModVersion.set(mod_version)
+    expectedBackend.set(providers.gradleProperty('clientBackend').orElse('OpenGL'))
+    expectedLoaderVersions.put('fabric', fabric_loader_version)
+    expectedLoaders.add('fabric')
+    requireWindowsWatchdog.set(System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows'))
+    reportFile.set(layout.buildDirectory.file('reports/verification/fabric-client-evidence.json'))
+}
+
+def verifyNeoForgeClientEvidence = tasks.register('verifyNeoForgeClientEvidence', VerifyClientEvidenceTask) {
+    group = 'verification'
+    description = 'Validates NeoForge world-entry, rendering, GUI, JEI, backend, screenshots, PID, and save evidence.'
+    dependsOn(':neoforge:runClientSmoke', ':neoforge:awaitNeoForgeClientWatchdog')
+    successMarkers.from(project(':neoforge').layout.buildDirectory.file(
+            'run/clientSmoke/client-test-evidence/success.json'))
+    expectedMinecraftVersion.set(minecraft_version)
+    expectedModVersion.set(mod_version)
+    expectedBackend.set(providers.gradleProperty('clientBackend').orElse('OpenGL'))
+    expectedLoaderVersions.put('neoforge', neo_version)
+    expectedLoaders.add('neoforge')
+    requireWindowsWatchdog.set(System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows'))
+    reportFile.set(layout.buildDirectory.file('reports/verification/neoforge-client-evidence.json'))
+}
+
+auditFabricClientLogs.configure { dependsOn verifyFabricClientEvidence }
+auditNeoForgeClientLogs.configure { dependsOn verifyNeoForgeClientEvidence }
+
+def verifyFabricClient = tasks.register('verifyFabricClient') {
+    group = 'verification'
+    description = 'Launches the real Fabric client and enforces isolated-world graphical evidence.'
+    dependsOn verifyFabricClientEvidence, auditFabricClientLogs
+}
+
+def verifyNeoForgeClient = tasks.register('verifyNeoForgeClient') {
+    group = 'verification'
+    description = 'Launches the real NeoForge client and enforces isolated-world graphical evidence.'
+    dependsOn verifyNeoForgeClientEvidence, auditNeoForgeClientLogs
+}
+
+def verifyClient = tasks.register('verifyClient') {
+    group = 'verification'
+    description = 'Launches both real clients, enters isolated worlds, and enforces visible-window evidence.'
+    dependsOn verifyFabricClient, verifyNeoForgeClient
+}
+
+def externalFabricWorldFixture = providers.gradleProperty('fabricWorldFixture').orNull
+def externalNeoForgeWorldFixture = providers.gradleProperty('neoForgeWorldFixture').orNull
+if ((externalFabricWorldFixture == null) != (externalNeoForgeWorldFixture == null)) {
+    throw new GradleException('fabricWorldFixture and neoForgeWorldFixture must be provided together')
+}
+
+def verifyCompatibilityEvidence = tasks.register('verifyCompatibilityEvidence', VerifyCurrentWorldCompatibilityTask) {
+    group = 'verification'
+    description = 'Checks that the current-version Fabric world survives a same-version NeoForge load and save.'
+    if (externalFabricWorldFixture == null) {
+        dependsOn verifyFabricClient, verifyNeoForgeClient
+        sourceFixture.set(project(':fabric').layout.buildDirectory.dir(
+                'run/clientGameTest/client-test-evidence/world-fixture'))
+        reopenedWorld.set(project(':neoforge').layout.buildDirectory.dir('run/clientSmoke/saves/drinkbeer-smoke'))
+    } else {
+        sourceFixture.set(file(externalFabricWorldFixture))
+        reopenedWorld.set(file(externalNeoForgeWorldFixture))
+    }
+    reportFile.set(layout.buildDirectory.file('reports/verification/current-cross-loader-world.json'))
+}
+
+def verifyCompatibility = tasks.register('verifyCompatibility') {
+    group = 'verification'
+    description = 'Runs same-Minecraft-version cross-loader world consistency verification.'
+    dependsOn verifyCompatibilityEvidence
+}
+
+def verifyArtifacts = tasks.register('verifyArtifacts', VerifyModArtifactsTask) {
+    group = 'verification'
+    description = 'Inspects final loader jars for exact metadata and test-only content leakage.'
+    dependsOn(':fabric:assemble', ':neoforge:assemble')
+    artifacts.from(expectedFabricArtifact, expectedNeoForgeArtifact)
+    expectedMinecraftVersion.set(minecraft_version)
+    expectedModVersion.set(mod_version)
+    expectedJavaVersion.set(java_version as int)
+    reportFile.set(layout.buildDirectory.file('reports/verification/artifacts.json'))
+}
+
+def collectReleaseArtifacts = tasks.register('collectReleaseArtifacts', Sync) {
+    group = 'build'
+    description = 'Collects the two inspected release jars without test fixtures or probes.'
+    dependsOn verifyArtifacts
+    from(expectedFabricArtifact, expectedNeoForgeArtifact)
+    into(layout.buildDirectory.dir('release/artifacts'))
+}
+
+def generateReleaseChecksums = tasks.register('generateReleaseChecksums', GenerateChecksumsTask) {
+    group = 'verification'
+    description = 'Generates SHA-256 checksums for the two final release jars.'
+    dependsOn collectReleaseArtifacts
+    artifacts.from(layout.buildDirectory.dir('release/artifacts').map { it.asFileTree.matching { include('*.jar') } })
+    checksumFile.set(layout.buildDirectory.file('release/SHA256SUMS'))
+}
+
+verifyServer.configure { mustRunAfter verifyUnit }
+verifyCompatibility.configure { mustRunAfter verifyServer }
+verifyClient.configure { mustRunAfter verifyCompatibility }
+verifyArtifacts.configure { mustRunAfter verifyClient }
+generateReleaseChecksums.configure { mustRunAfter verifyArtifacts }
+
+project(':fabric').tasks.matching { it.name == 'runGameTest' }.configureEach {
+    mustRunAfter(':fabric:test', ':neoforge:test', ':fabric:assemble', ':neoforge:assemble')
+}
+project(':neoforge').tasks.matching { it.name == 'runGameTestServer' }.configureEach {
+    mustRunAfter(':fabric:test', ':neoforge:test', ':fabric:assemble', ':neoforge:assemble')
+}
+project(':fabric').tasks.matching { it.name == 'runClientGameTest' }.configureEach {
+    mustRunAfter(':fabric:runGameTest', ':neoforge:runGameTestServer')
+}
+project(':neoforge').tasks.matching { it.name == 'runClientSmoke' }.configureEach {
+    mustRunAfter(':fabric:runGameTest', ':neoforge:runGameTestServer')
+}
+
+tasks.register('verifyRelease') {
+    group = 'verification'
+    description = 'Runs the complete unattended release gate and emits inspected jars plus SHA-256 evidence.'
+    dependsOn(verifyUnit, verifyServer, verifyCompatibility, verifyClient, verifyArtifacts, generateReleaseChecksums)
 }

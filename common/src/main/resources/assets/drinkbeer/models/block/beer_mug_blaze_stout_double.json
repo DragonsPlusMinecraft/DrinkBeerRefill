@@ -1,6 +1,7 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
+        "transparent": "drinkbeer:block/transparent",
 		"0": "drinkbeer:block/beer_mug_beer",
 		"1": "drinkbeer:block/beer_mug_wood",
 		"2": "drinkbeer:block/beer_mug_metal",
@@ -123,10 +124,10 @@
 			"to": [7, 5.5, 11.1],
 			"rotation": {"angle": 45, "axis": "y", "origin": [8, 0, 7.55]},
 			"faces": {
-				"north": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
-				"east": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
-				"south": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
-				"west": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
+				"north": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
+				"east": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
+				"south": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
+				"west": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
 				"up": {"uv": [4, 0, 10, 6], "rotation": 180, "texture": "#4"},
 				"down": {"uv": [4, 0, 8, 4], "rotation": 180, "texture": "#3"}
 			}
@@ -401,10 +402,10 @@
 			"to": [11, 5.5, 6],
 			"rotation": {"angle": 0, "axis": "y", "origin": [0, 0, -1]},
 			"faces": {
-				"north": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
-				"east": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
-				"south": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
-				"west": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
+				"north": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
+				"east": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
+				"south": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
+				"west": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
 				"up": {"uv": [4, 0, 10, 6], "texture": "#0"},
 				"down": {"uv": [4, 0, 8, 4], "texture": "#3"}
 			}

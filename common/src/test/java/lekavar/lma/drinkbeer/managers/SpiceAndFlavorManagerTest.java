@@ -54,10 +54,10 @@ class SpiceAndFlavorManagerTest {
         assertEquals(5, drink.getHunger());
         assertEquals(0.0F, drink.getHealth()); // -4 fiery +4 luscious
         assertEquals(1400, drink.getStatusEffectList().stream()
-                .filter(effect -> effect.getKey() == MobEffects.DIG_SPEED.value())
+                .filter(effect -> effect.getKey() == MobEffects.HASTE.value())
                 .findFirst().orElseThrow().getValue());
         assertEquals(1600, drink.getStatusEffectList().stream()
-                .filter(effect -> effect.getKey() == MobEffects.DAMAGE_RESISTANCE.value())
+                .filter(effect -> effect.getKey() == MobEffects.RESISTANCE.value())
                 .findFirst().orElseThrow().getValue());
     }
 
@@ -70,7 +70,7 @@ class SpiceAndFlavorManagerTest {
 
     private static MixedBeerOnUsing drinkWithEffect(int duration) {
         MixedBeerOnUsing drink = new MixedBeerOnUsing();
-        drink.addStatusEffect(List.of(Pair.of(MobEffects.DIG_SPEED.value(), duration)));
+        drink.addStatusEffect(List.of(Pair.of(MobEffects.HASTE.value(), duration)));
         return drink;
     }
 }

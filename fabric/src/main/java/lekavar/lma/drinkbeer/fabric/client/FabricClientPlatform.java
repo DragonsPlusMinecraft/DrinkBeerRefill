@@ -2,34 +2,41 @@ package lekavar.lma.drinkbeer.fabric.client;
 
 import lekavar.lma.drinkbeer.client.renderers.BartendingTableBlockEntityRenderer;
 import lekavar.lma.drinkbeer.client.renderers.MixedBeerBlockEntityRenderer;
+import lekavar.lma.drinkbeer.compat.jei.JeiRecipeSource;
 import lekavar.lma.drinkbeer.fabric.FabricPlatform;
 import lekavar.lma.drinkbeer.gui.BeerBarrelScreen;
 import lekavar.lma.drinkbeer.gui.TradeBoxScreen;
-import lekavar.lma.drinkbeer.managers.MixedBeerManager;
 import lekavar.lma.drinkbeer.networking.RefreshTradeBoxPayload;
 import lekavar.lma.drinkbeer.platform.ClientPlatformHooks;
 import lekavar.lma.drinkbeer.registries.BlockEntityRegistry;
 import lekavar.lma.drinkbeer.registries.BlockRegistry;
-import lekavar.lma.drinkbeer.registries.ItemRegistry;
 import lekavar.lma.drinkbeer.registries.MenuTypeRegistry;
 import lekavar.lma.drinkbeer.registries.ParticleTypeRegistry;
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
+import lekavar.lma.drinkbeer.registries.RecipeRegistry;
+import mezz.jei.common.Internal;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.particle.FlameParticle;
 import net.minecraft.client.particle.HeartParticle;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
-import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.particles.SimpleParticleType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
 public final class FabricClientPlatform implements ClientPlatformHooks {
     @Override
     public void initializeClient() {
-        BlockRenderLayerMap.INSTANCE.putBlocks(
-                RenderType.cutout(),
+        JeiRecipeSource.install(() -> Internal.getClientSyncedRecipes()
+                .byType(RecipeRegistry.RECIPE_TYPE_BREWING.get())
+                .stream()
+                .map(RecipeHolder::value)
+                .toList());
+
+        BlockRenderLayerMap.putBlocks(
+                ChunkSectionLayer.CUTOUT,
                 BlockRegistry.COLORED_LIGHTS.get(),
                 BlockRegistry.SIDE_COLORED_LIGHTS.get(),
                 BlockRegistry.STAR_OF_BETHLEHEM.get(),
@@ -55,12 +62,6 @@ public final class FabricClientPlatform implements ClientPlatformHooks {
         ParticleFactoryRegistry.getInstance().register(
                 (SimpleParticleType) ParticleTypeRegistry.CALL_BELL_TINKLE_PAW.get(),
                 HeartParticle.AngryVillagerProvider::new
-        );
-
-        ItemProperties.register(
-                ItemRegistry.MIXED_BEER.get(),
-                ResourceLocation.withDefaultNamespace("beer_id"),
-                (stack, level, living, seed) -> MixedBeerManager.getBeerId(stack) / 100.0F
         );
 
         FabricPlatform.installClientPacketSender(pos ->

@@ -13,13 +13,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BrewingRecipeTest {
     private static BrewingRecipe recipe() {
-        NonNullList<Ingredient> ingredients = NonNullList.of(
-                Ingredient.EMPTY,
-                Ingredient.of(Items.WHEAT),
-                Ingredient.of(Items.WHEAT),
-                Ingredient.of(Items.APPLE),
-                Ingredient.of(Items.WATER_BUCKET)
-        );
+        NonNullList<Ingredient> ingredients = NonNullList.create();
+        ingredients.add(Ingredient.of(Items.WHEAT));
+        ingredients.add(Ingredient.of(Items.WHEAT));
+        ingredients.add(Ingredient.of(Items.APPLE));
+        ingredients.add(Ingredient.of(Items.WATER_BUCKET));
         return new BrewingRecipe(
                 ingredients,
                 new ItemStack(Items.GLASS_BOTTLE, 4),

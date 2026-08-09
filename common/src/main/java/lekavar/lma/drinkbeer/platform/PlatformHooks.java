@@ -2,6 +2,7 @@ package lekavar.lma.drinkbeer.platform;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -11,9 +12,14 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
 import java.util.function.Supplier;
+import java.util.function.Function;
 
 public interface PlatformHooks {
-    <T, R extends T> RegistryHandle<R> register(Registry<T> registry, String path, Supplier<? extends R> factory);
+    <T, R extends T> RegistryHandle<R> register(
+            Registry<T> registry,
+            String path,
+            Function<ResourceKey<T>, ? extends R> factory
+    );
 
     <T extends AbstractContainerMenu> RegistryHandle<MenuType<T>> registerMenu(
             String path,

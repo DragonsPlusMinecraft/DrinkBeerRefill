@@ -5,38 +5,59 @@ import com.mojang.math.Axis;
 import lekavar.lma.drinkbeer.blockentities.MixedBeerBlockEntity;
 import lekavar.lma.drinkbeer.registries.ItemRegistry;
 import lekavar.lma.drinkbeer.utils.beer.Beers;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
-public class MixedBeerBlockEntityRenderer implements BlockEntityRenderer<MixedBeerBlockEntity> {
+public class MixedBeerBlockEntityRenderer implements BlockEntityRenderer<MixedBeerBlockEntity, MixedBeerBlockEntityRenderer.RenderState> {
+    private final ItemModelResolver itemModelResolver;
+
     public MixedBeerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+        this.itemModelResolver = context.itemModelResolver();
     }
 
     @Override
-    public void render(MixedBeerBlockEntity blockEntity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
-        matrices.pushPose();
+    public RenderState createRenderState() {
+        return new RenderState();
+    }
 
-        int beerId = blockEntity.getBeerId();
-        ItemStack beerStack = getBeerStack(beerId);
-        BlockPos pos = blockEntity.getBlockPos();
+    @Override
+    public void extractRenderState(MixedBeerBlockEntity blockEntity, RenderState renderState, float partialTick,
+                                   Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+        BlockEntityRenderer.super.extractRenderState(blockEntity, renderState, partialTick, cameraPosition, breakProgress);
+        ItemStack beerStack = getBeerStack(blockEntity.getBeerId());
+        this.itemModelResolver.updateForTopItem(renderState.beer, beerStack, ItemDisplayContext.GROUND,
+                blockEntity.getLevel(), null, blockEntity.getBlockPos().hashCode());
+        renderState.angle = getRandomAngleByPos(blockEntity.getBlockPos());
+        if (blockEntity.getLevel() != null) {
+            renderState.lightCoords = LevelRenderer.getLightColor(blockEntity.getLevel(), blockEntity.getBlockPos().above());
+        }
+    }
 
-        //Move beer
-        matrices.translate(0.5, 0.25, 0.5);
-        //Rotate beer
-        matrices.mulPose(Axis.YP.rotationDegrees(getRandomAngleByPos(pos)));
-        //Get light at the beer block
-        int lightAbove = LevelRenderer.getLightColor(blockEntity.getLevel(), blockEntity.getBlockPos().above());
-        //Render beer
-        Minecraft.getInstance().getItemRenderer().renderStatic(beerStack, ItemDisplayContext.GROUND, lightAbove, overlay, matrices, vertexConsumers, blockEntity.getLevel(), 0);
-
-        matrices.popPose();
+    @Override
+    public void submit(RenderState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector,
+                       CameraRenderState cameraRenderState) {
+        if (renderState.beer.isEmpty()) {
+            return;
+        }
+        poseStack.pushPose();
+        poseStack.translate(0.5, 0.25, 0.5);
+        poseStack.mulPose(Axis.YP.rotationDegrees(renderState.angle));
+        renderState.beer.submit(poseStack, nodeCollector, renderState.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+        poseStack.popPose();
     }
 
     private ItemStack getBeerStack(int beerId) {
@@ -51,7 +72,7 @@ public class MixedBeerBlockEntityRenderer implements BlockEntityRenderer<MixedBe
         return itemStack;
     }
 
-    private float getRandomAngleByPos(BlockPos pos) {
+    private static float getRandomAngleByPos(BlockPos pos) {
         float angle = 0f;
         int x = pos.getX();
         int y = pos.getY();
@@ -60,5 +81,10 @@ public class MixedBeerBlockEntityRenderer implements BlockEntityRenderer<MixedBe
         angle = 360 * ((float) sum % 8 / 8);
 
         return angle;
+    }
+
+    public static class RenderState extends BlockEntityRenderState {
+        final ItemStackRenderState beer = new ItemStackRenderState();
+        float angle;
     }
 }

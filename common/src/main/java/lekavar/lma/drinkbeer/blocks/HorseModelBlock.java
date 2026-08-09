@@ -7,7 +7,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -21,7 +21,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
@@ -32,18 +32,13 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class HorseModelBlock extends DoublePlantBlock {
-    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     private static final VoxelShape SHAPE = Shapes.block();
 
     private final boolean includesBell;
 
-    public HorseModelBlock(boolean includesBell) {
-        super(Properties.of()
-                .mapColor(MapColor.WOOD)
-                .strength(1.0F)
-                .sound(SoundType.WOOD)
-                .noOcclusion()
-                .pushReaction(PushReaction.DESTROY));
+    public HorseModelBlock(Properties properties, boolean includesBell) {
+        super(properties);
         this.includesBell = includesBell;
         registerDefaultState(stateDefinition.any()
                 .setValue(HALF, DoubleBlockHalf.LOWER)
@@ -85,17 +80,17 @@ public class HorseModelBlock extends DoublePlantBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         playHorseSound(level, pos);
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (hand != InteractionHand.MAIN_HAND) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         playHorseSound(level, pos);
-        return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     private void playHorseSound(Level level, BlockPos pos) {

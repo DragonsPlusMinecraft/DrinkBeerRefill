@@ -16,12 +16,15 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.Containers;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -40,6 +43,15 @@ public class BartendingTableBlockEntity extends BlockEntity {
 
     public BartendingTableBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.BARTENDING_TABLE_TILEENTITY.get(), pos, state);
+    }
+
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (level != null) {
+            Containers.dropContents(level, pos, inv);
+            level.updateNeighbourForOutputSignal(pos, state.getBlock());
+        }
     }
 
     public TableActionResult placeBeer(ItemStack itemStack) {
@@ -144,21 +156,19 @@ public class BartendingTableBlockEntity extends BlockEntity {
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = super.getUpdateTag(registries);
-        ContainerHelper.saveAllItems(tag, this.inv.getItems(), true, registries);
-        return tag;
+        return saveCustomOnly(registries);
     }
 
     @Override
-    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag,registries);
-        ContainerHelper.saveAllItems(tag, this.inv.getItems(), true, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        ContainerHelper.saveAllItems(output, this.inv.getItems(), true);
     }
 
     @Override
-    public void loadAdditional(@Nonnull CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag,registries);
-        ContainerHelper.loadAllItems(tag, this.inv.getItems(), registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        ContainerHelper.loadAllItems(input, this.inv.getItems());
     }
 
     static class OneItemContainer extends SimpleContainer {

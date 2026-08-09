@@ -1,4 +1,8 @@
 {
+  "tag.item.drinkbeer.beer": "啤酒",
+  "tag.item.drinkbeer.beers": "啤酒",
+  "tag.item.c.milk.milk_bottle": "瓶装牛奶",
+  "tag.item.minecraft.milk_bucket": "牛奶桶",
   "block.drinkbeer.gift_red": "红色礼物",
   "block.drinkbeer.gift_blue": "蓝色礼物",
   "block.drinkbeer.gift_green": "绿色礼物",

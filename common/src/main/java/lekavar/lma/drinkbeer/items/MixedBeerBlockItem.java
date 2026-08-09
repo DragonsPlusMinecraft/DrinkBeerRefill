@@ -14,6 +14,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.Consumables;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
@@ -22,11 +24,12 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 public class MixedBeerBlockItem extends BeerBlockItem {
     public MixedBeerBlockItem(Block block) {
-        super(block, new Item.Properties().stacksTo(1)
-                .food(new FoodProperties.Builder().alwaysEdible().build())
+        super(block, propertiesFor(block).stacksTo(1)
+                .food(new FoodProperties.Builder().alwaysEdible().build(), Consumables.DEFAULT_DRINK)
                 .component(DataComponentTypeRegistry.BEER_ID_COMPONENT.get(), 1)
                 .component(DataComponentTypeRegistry.SPICE_COMPONENT.get(), new SpiceData(Spices.EMPTY_SPICE_ID,Spices.EMPTY_SPICE_ID,Spices.EMPTY_SPICE_ID)));
     }
@@ -108,8 +111,11 @@ public class MixedBeerBlockItem extends BeerBlockItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        appendMixedBeerTooltip(stack, tooltipComponents);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay tooltipDisplay,
+                                Consumer<Component> tooltipAdder, TooltipFlag tooltipFlag) {
+        List<Component> tooltip = new java.util.ArrayList<>();
+        appendMixedBeerTooltip(stack, tooltip);
+        tooltip.forEach(tooltipAdder);
     }
 
     @Override

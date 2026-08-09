@@ -22,6 +22,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -109,23 +111,23 @@ public class TradeBoxBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     @Override
-    public void saveAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag,registries);
-        ContainerHelper.saveAllItems(tag, this.goodInventory.getItems(), registries);
-        tag.putInt("CoolingTime", this.coolingTime);
-        tag.putInt("LocationId", this.locationId);
-        tag.putInt("ResidentId", this.residentId);
-        tag.putInt("Process", this.process);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        ContainerHelper.saveAllItems(output, this.goodInventory.getItems());
+        output.putInt("CoolingTime", this.coolingTime);
+        output.putInt("LocationId", this.locationId);
+        output.putInt("ResidentId", this.residentId);
+        output.putInt("Process", this.process);
     }
 
     @Override
-    public void loadAdditional(@Nonnull CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag,registries);
-        ContainerHelper.loadAllItems(tag, this.goodInventory.getItems(), registries);
-        this.coolingTime = Math.max(0, tag.getInt("CoolingTime"));
-        this.locationId = Locations.byId(tag.getInt("LocationId")).getId();
-        this.residentId = Residents.byId(tag.getInt("ResidentId")).getId();
-        this.process = tag.getInt("Process") == PROCESS_TRADING ? PROCESS_TRADING : PROCESS_COOLING;
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        ContainerHelper.loadAllItems(input, this.goodInventory.getItems());
+        this.coolingTime = Math.max(0, input.getIntOr("CoolingTime", 0));
+        this.locationId = Locations.byId(input.getIntOr("LocationId", Locations.EMPTY_LOCATION.getId())).getId();
+        this.residentId = Residents.byId(input.getIntOr("ResidentId", Residents.EMPTY_RESIDENT.getId())).getId();
+        this.process = input.getIntOr("Process", PROCESS_COOLING) == PROCESS_TRADING ? PROCESS_TRADING : PROCESS_COOLING;
     }
 
     public static void tick(Level world, BlockPos pos, BlockState state, TradeBoxBlockEntity tradeboxEntity) {

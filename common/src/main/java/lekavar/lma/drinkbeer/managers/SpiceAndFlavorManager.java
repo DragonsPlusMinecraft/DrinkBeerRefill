@@ -251,7 +251,7 @@ public class SpiceAndFlavorManager {
 
     public static void applyMellowFlavorAction(MixedBeerOnUsing mixedBeerOnUsing, Flavors flavor) {
         switch (flavor) {
-            case MELLOW -> mixedBeerOnUsing.addSpecificStatusEffectDuration(MobEffects.DAMAGE_RESISTANCE.value(), 1600);
+            case MELLOW -> mixedBeerOnUsing.addSpecificStatusEffectDuration(MobEffects.RESISTANCE.value(), 1600);
         }
     }
 

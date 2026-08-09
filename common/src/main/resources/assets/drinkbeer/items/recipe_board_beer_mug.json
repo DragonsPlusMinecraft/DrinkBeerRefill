@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "drinkbeer:item/recipe_board_beer_mug"
+  }
+}

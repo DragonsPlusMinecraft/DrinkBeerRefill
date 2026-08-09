@@ -1,6 +1,7 @@
 package lekavar.lma.drinkbeer.platform;
 
 import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.Block;
@@ -8,12 +9,21 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
 import java.util.function.Supplier;
+import java.util.function.Function;
 
 public final class Registration {
     public static <T, R extends T> RegistryHandle<R> register(
             Registry<T> registry,
             String path,
             Supplier<? extends R> factory
+    ) {
+        return Platform.hooks().register(registry, path, ignored -> factory.get());
+    }
+
+    public static <T, R extends T> RegistryHandle<R> registerWithKey(
+            Registry<T> registry,
+            String path,
+            Function<ResourceKey<T>, ? extends R> factory
     ) {
         return Platform.hooks().register(registry, path, factory);
     }

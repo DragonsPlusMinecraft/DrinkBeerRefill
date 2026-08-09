@@ -5,22 +5,22 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
@@ -31,7 +31,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import javax.annotation.Nullable;
 
 public class BeerMugBlock extends Block {
-    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final IntegerProperty AMOUNT = IntegerProperty.create("amount", 1, 3);
     protected static final VoxelShape[] SHAPE_BY_AMOUNT = new VoxelShape[]{
             Block.box(0, 0, 0, 16, 16, 16),
@@ -40,8 +40,8 @@ public class BeerMugBlock extends Block {
             Block.box(1, 0, 1, 15, 6, 15)
     };
 
-    public BeerMugBlock() {
-        super(Properties.of().ignitedByLava().mapColor(MapColor.WOOD).strength(1.0f).noOcclusion().pushReaction(PushReaction.DESTROY));
+    public BeerMugBlock(Properties properties) {
+        super(properties);
         this.registerDefaultState(
                 this.defaultBlockState().setValue(FACING, Direction.NORTH).setValue(AMOUNT, 1)
         );
@@ -64,8 +64,12 @@ public class BeerMugBlock extends Block {
     }
 
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
-        return direction == Direction.DOWN && !state.canSurvive(level, pos) ? Blocks.AIR.defaultBlockState() : super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess scheduledTickAccess,
+                                     BlockPos pos, Direction direction, BlockPos neighborPos,
+                                     BlockState neighborState, RandomSource random) {
+        return direction == Direction.DOWN && !state.canSurvive(level, pos)
+                ? Blocks.AIR.defaultBlockState()
+                : super.updateShape(state, level, scheduledTickAccess, pos, direction, neighborPos, neighborState, random);
     }
 
     @Override
@@ -85,11 +89,11 @@ public class BeerMugBlock extends Block {
                     world.playSound(null, pos, SoundEvents.WOOD_PLACE, SoundSource.AMBIENT, 0.5f, 0.5f);
             }
         }
-        return InteractionResult.sidedSuccess(world.isClientSide);
+        return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         ItemStack itemStack = player.getItemInHand(hand);
         // Placing Beer
         if (itemStack.getItem() == state.getBlock().asItem()) {
@@ -117,9 +121,9 @@ public class BeerMugBlock extends Block {
                     default: {}
                 }
             }
-            return ItemInteractionResult.sidedSuccess(world.isClientSide);
+            return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
 

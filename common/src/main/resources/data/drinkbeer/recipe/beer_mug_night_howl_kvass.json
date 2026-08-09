@@ -1,18 +1,10 @@
 {
   "type": "drinkbeer:brewing",
   "ingredients": [
-    {
-      "item": "minecraft:bread"
-    },
-    {
-      "item": "minecraft:bread"
-    },
-    {
-      "item": "minecraft:bone"
-    },
-    {
-      "item": "minecraft:water_bucket"
-    }
+    "minecraft:bread",
+    "minecraft:bread",
+    "minecraft:bone",
+    "minecraft:water_bucket"
   ],
   "cup": {
     "id": "drinkbeer:empty_beer_mug",

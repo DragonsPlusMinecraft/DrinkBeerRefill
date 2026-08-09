@@ -17,7 +17,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -30,13 +30,13 @@ import java.util.stream.Collectors;
 
 public class RecipeBoardPackageBlock extends Block {
     private static final Random RNG = new Random();
-    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     public final static VoxelShape N_S_SHAPE = Block.box(0, 1, 1, 16, 10, 15);
     public final static VoxelShape E_W_SHAPE = Block.box(1, 0, 0, 15, 10, 16);
 
-    public RecipeBoardPackageBlock() {
-        super(Properties.of().mapColor(MapColor.METAL).strength(1.0f).noOcclusion());
+    public RecipeBoardPackageBlock(Properties properties) {
+        super(properties);
         this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.NORTH));
     }
 
@@ -68,7 +68,7 @@ public class RecipeBoardPackageBlock extends Block {
             Containers.dropItemStack(world, pos.getX(), pos.getY(), pos.getZ(), getRecipeBoardDrop());
             world.setBlock(pos, Blocks.AIR.defaultBlockState(), 1);
         }
-        return InteractionResult.sidedSuccess(world.isClientSide);
+        return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     @Override

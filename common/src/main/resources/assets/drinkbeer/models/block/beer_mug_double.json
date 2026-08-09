@@ -1,6 +1,7 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
+        "transparent": "drinkbeer:block/transparent",
 		"1": "drinkbeer:block/beer_mug_wood",
 		"2": "drinkbeer:block/beer_mug_metal",
 		"3": "drinkbeer:block/beer_mug_wood_bottom",
@@ -123,10 +124,10 @@
 			"to": [12, 5.5, 7],
 			"rotation": {"angle": 22.5, "axis": "y", "origin": [8, 0, 8.55]},
 			"faces": {
-				"north": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
-				"east": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
-				"south": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
-				"west": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
+				"north": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
+				"east": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
+				"south": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
+				"west": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
 				"up": {"uv": [0, 0, 4, 4], "texture": "#4"},
 				"down": {"uv": [0, 0, 4, 4], "texture": "#3"}
 			}

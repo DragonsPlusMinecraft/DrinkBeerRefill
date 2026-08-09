@@ -2,6 +2,9 @@ package lekavar.lma.drinkbeer.utils.beer;
 
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.item.component.Consumable;
+import net.minecraft.world.item.component.Consumables;
+import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
@@ -23,12 +26,17 @@ public record BeerDefinition(
     }
 
     public FoodProperties foodProperties(float saturationModifier) {
-        FoodProperties.Builder builder = new FoodProperties.Builder()
+        return new FoodProperties.Builder()
                 .nutrition(nutrition)
                 .saturationModifier(saturationModifier)
-                .alwaysEdible();
+                .alwaysEdible()
+                .build();
+    }
+
+    public Consumable consumable() {
+        Consumable.Builder builder = Consumables.defaultDrink();
         if (effectFactory != null) {
-            builder.effect(effectFactory.get(), 1.0F);
+            builder.onConsume(new ApplyStatusEffectsConsumeEffect(effectFactory.get(), 1.0F));
         }
         return builder.build();
     }

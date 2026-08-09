@@ -48,7 +48,7 @@ class BeerDefinitionsTest {
             assertEquals(0.0F, exact.saturation(), 0.0001F, "beer id " + definition.id());
             assertEquals(definition.nutrition() * 0.2F, improved.saturation(), 0.0001F, "beer id " + definition.id());
             assertTrue(improved.canAlwaysEat(), "beer id " + definition.id());
-            assertEquals(32, improved.eatDurationTicks(), "beer id " + definition.id());
+            assertEquals(32, definition.consumable().consumeTicks(), "beer id " + definition.id());
         }
     }
 

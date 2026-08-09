@@ -13,8 +13,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -33,11 +33,11 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class MixedBeerBlock extends BaseEntityBlock {
-    public final static MapCodec<MixedBeerBlock> CODEC = simpleCodec(pro->new MixedBeerBlock());
+    public final static MapCodec<MixedBeerBlock> CODEC = simpleCodec(MixedBeerBlock::new);
     public final static VoxelShape ONE_MUG_SHAPE = Block.box(4, 0, 4, 12, 6, 12);
 
-    public MixedBeerBlock() {
-        super(Properties.of().ignitedByLava().mapColor(MapColor.WOOD).strength(1.0f).noOcclusion().pushReaction(PushReaction.DESTROY));
+    public MixedBeerBlock(Properties properties) {
+        super(properties);
     }
 
     @Override
@@ -46,8 +46,12 @@ public class MixedBeerBlock extends BaseEntityBlock {
     }
 
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
-        return direction == Direction.DOWN && !state.canSurvive(level, pos) ? Blocks.AIR.defaultBlockState() : super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess scheduledTickAccess,
+                                     BlockPos pos, Direction direction, BlockPos neighborPos,
+                                     BlockState neighborState, RandomSource random) {
+        return direction == Direction.DOWN && !state.canSurvive(level, pos)
+                ? Blocks.AIR.defaultBlockState()
+                : super.updateShape(state, level, scheduledTickAccess, pos, direction, neighborPos, neighborState, random);
     }
 
     @Override
@@ -67,13 +71,13 @@ public class MixedBeerBlock extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             if (level.getBlockEntity(pos) instanceof MixedBeerBlockEntity mixedBeerBlockEntity) {
                 ItemStackHelper.giveToPlayer(player, mixedBeerBlockEntity.getPickStack());
                 level.removeBlock(pos, false);
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     @Nullable

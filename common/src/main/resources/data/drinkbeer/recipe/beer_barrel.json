@@ -6,12 +6,8 @@
     "   "
   ],
   "key": {
-    "X": {
-      "item": "minecraft:barrel"
-    },
-    "Y": {
-      "item": "minecraft:iron_ingot"
-    }
+    "X": "minecraft:barrel",
+    "Y": "minecraft:iron_ingot"
   },
   "result": {
     "id": "drinkbeer:beer_barrel",

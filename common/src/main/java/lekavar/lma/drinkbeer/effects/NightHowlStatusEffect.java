@@ -32,7 +32,7 @@ public class NightHowlStatusEffect {
     }
 
     public static void playRandomHowlSound(Level world, LivingEntity user) {
-        if (!world.isClientSide) {
+        if (!world.isClientSide()) {
             world.playSound(null, user.blockPosition(),
                     SoundEventRegistry.NIGHT_HOWL[world.getRandom().nextInt(SoundEventRegistry.NIGHT_HOWL.length)].get(),
                     SoundSource.PLAYERS, 1.2f, 1f);

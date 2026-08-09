@@ -14,12 +14,14 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -31,6 +33,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class FabricPlatform implements PlatformHooks {
@@ -41,10 +44,11 @@ public final class FabricPlatform implements PlatformHooks {
     public <T, R extends T> RegistryHandle<R> register(
             Registry<T> registry,
             String path,
-            Supplier<? extends R> factory
+            Function<ResourceKey<T>, ? extends R> factory
     ) {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(DrinkBeer.MOD_ID, path);
-        R value = factory.get();
+        Identifier id = Identifier.fromNamespaceAndPath(DrinkBeer.MOD_ID, path);
+        ResourceKey<T> key = ResourceKey.create(registry.key(), id);
+        R value = factory.apply(key);
         Registry.register(registry, id, value);
         @SuppressWarnings("unchecked")
         Holder<R> holder = (Holder<R>) (Holder<?>) registry.wrapAsHolder(value);
@@ -56,7 +60,7 @@ public final class FabricPlatform implements PlatformHooks {
             String path,
             ExtendedMenuFactory<T> factory
     ) {
-        return register(BuiltInRegistries.MENU, path, () -> new ExtendedScreenHandlerType<>(
+        return register(BuiltInRegistries.MENU, path, ignored -> new ExtendedScreenHandlerType<>(
                 (containerId, inventory, pos) -> factory.create(containerId, inventory, pos),
                 BlockPos.STREAM_CODEC
         ));
@@ -69,12 +73,12 @@ public final class FabricPlatform implements PlatformHooks {
             BlockEntityFactory<T> factory,
             Supplier<? extends Block>... validBlocks
     ) {
-        return register(BuiltInRegistries.BLOCK_ENTITY_TYPE, path, () -> {
+        return register(BuiltInRegistries.BLOCK_ENTITY_TYPE, path, ignored -> {
             Block[] blocks = new Block[validBlocks.length];
             for (int i = 0; i < validBlocks.length; i++) {
                 blocks[i] = validBlocks[i].get();
             }
-            return BlockEntityType.Builder.of(factory::create, blocks).build(null);
+            return FabricBlockEntityTypeBuilder.create(factory::create, blocks).build();
         });
     }
 

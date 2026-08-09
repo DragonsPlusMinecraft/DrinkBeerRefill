@@ -1,6 +1,7 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
+        "transparent": "drinkbeer:block/transparent",
 		"0": "drinkbeer:block/beer_mug_beer",
 		"1": "drinkbeer:block/beer_mug_wood",
 		"2": "drinkbeer:block/beer_mug_metal",
@@ -122,10 +123,10 @@
 			"from": [9, 0, 3],
 			"to": [13, 7.5, 7],
 			"faces": {
-				"north": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
-				"east": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
-				"south": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
-				"west": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
+				"north": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
+				"east": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
+				"south": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
+				"west": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
 				"up": {"uv": [4, 6, 10, 12], "texture": "#0"},
 				"down": {"uv": [4, 0, 8, 4], "texture": "#3"}
 			}
@@ -336,10 +337,10 @@
 			"to": [7.55, 7.5, 13.55],
 			"rotation": {"angle": -22.5, "axis": "y", "origin": [8, 0, 8.55]},
 			"faces": {
-				"north": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
-				"east": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
-				"south": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
-				"west": {"uv": [0, 0, 4, 5.5], "texture": "#missing"},
+				"north": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
+				"east": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
+				"south": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
+				"west": {"uv": [0, 0, 4, 5.5], "texture": "#transparent"},
 				"up": {"uv": [4, 6, 10, 12], "rotation": 90, "texture": "#4"},
 				"down": {"uv": [4, 0, 8, 4], "rotation": 270, "texture": "#3"}
 			}

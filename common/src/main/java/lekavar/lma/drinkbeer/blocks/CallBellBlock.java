@@ -8,12 +8,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -27,8 +28,8 @@ public class CallBellBlock extends Block {
 
     public final static VoxelShape SHAPE = Block.box(5.5f, 0, 5.5f, 10.5f, 4, 10.5f);
 
-    public CallBellBlock() {
-        super(Properties.of().mapColor(MapColor.METAL).strength(1.0f).pushReaction(PushReaction.DESTROY));
+    public CallBellBlock(Properties properties) {
+        super(properties);
     }
 
     @Override
@@ -37,8 +38,12 @@ public class CallBellBlock extends Block {
     }
 
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
-        return direction == Direction.DOWN && !state.canSurvive(level, pos) ? Blocks.AIR.defaultBlockState() : super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess scheduledTickAccess,
+                                     BlockPos pos, Direction direction, BlockPos neighborPos,
+                                     BlockState neighborState, RandomSource random) {
+        return direction == Direction.DOWN && !state.canSurvive(level, pos)
+                ? Blocks.AIR.defaultBlockState()
+                : super.updateShape(state, level, scheduledTickAccess, pos, direction, neighborPos, neighborState, random);
     }
 
     @Override
@@ -63,7 +68,7 @@ public class CallBellBlock extends Block {
                 world.addParticle((SimpleParticleType) ParticleTypeRegistry.CALL_BELL_TINKLE_PAW.get(), x, y, z, 0.0D, 0.0D, 0.0D);
             }
         }
-        return InteractionResult.sidedSuccess(world.isClientSide);
+        return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     @Override

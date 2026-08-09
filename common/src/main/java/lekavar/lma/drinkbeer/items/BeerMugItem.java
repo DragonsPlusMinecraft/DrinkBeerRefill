@@ -14,6 +14,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
@@ -22,6 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class BeerMugItem extends BeerBlockItem {
@@ -35,8 +37,8 @@ public class BeerMugItem extends BeerBlockItem {
     private final boolean hasExtraTooltip;
 
     public BeerMugItem(Block block, BeerDefinition definition) {
-        super(block, new Item.Properties().stacksTo(16)
-                .food(definition.foodProperties((float) DrinkBeerConfig.DEFAULT_BEER_SATURATION_MODIFIER)));
+        super(block, propertiesFor(block).stacksTo(16)
+                .food(definition.foodProperties((float) DrinkBeerConfig.DEFAULT_BEER_SATURATION_MODIFIER), definition.consumable()));
         this.definition = definition;
         this.hasExtraTooltip = definition.hasEffectTooltip();
     }
@@ -86,15 +88,16 @@ public class BeerMugItem extends BeerBlockItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay tooltipDisplay,
+                                Consumer<Component> tooltipAdder, TooltipFlag tooltipFlag) {
         String name = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
         if (hasEffectNoticeTooltip()) {
-            tooltipComponents.add(Component.translatable("item.drinkbeer." + name + ".tooltip").setStyle(Style.EMPTY.applyFormat(ChatFormatting.BLUE)));
+            tooltipAdder.accept(Component.translatable("item.drinkbeer." + name + ".tooltip").setStyle(Style.EMPTY.applyFormat(ChatFormatting.BLUE)));
         }
         FoodProperties foodProperties = getConfiguredFoodProperties();
         String hunger = String.valueOf(foodProperties.nutrition());
-        tooltipComponents.add(Component.translatable("drinkbeer.restores_hunger").setStyle(Style.EMPTY.applyFormat(ChatFormatting.BLUE)).append(hunger));
-        tooltipComponents.add(Component.translatable("drinkbeer.restores_saturation").setStyle(Style.EMPTY.applyFormat(ChatFormatting.BLUE))
+        tooltipAdder.accept(Component.translatable("drinkbeer.restores_hunger").setStyle(Style.EMPTY.applyFormat(ChatFormatting.BLUE)).append(hunger));
+        tooltipAdder.accept(Component.translatable("drinkbeer.restores_saturation").setStyle(Style.EMPTY.applyFormat(ChatFormatting.BLUE))
                 .append(String.format(java.util.Locale.ROOT, "%.1f", foodProperties.saturation())));
     }
 
@@ -104,7 +107,9 @@ public class BeerMugItem extends BeerBlockItem {
 
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
-        ItemStack result = user.eat(world, stack, getConfiguredFoodProperties());
+        // FOOD is a data component in 1.21.11. Refresh it at use time so the server config remains authoritative.
+        stack.set(net.minecraft.core.component.DataComponents.FOOD, getConfiguredFoodProperties());
+        ItemStack result = super.finishUsingItem(stack, world, user);
         if (!world.isClientSide()) {
             // Give Drunk status effect.
             DrunkStatusEffect.addStatusEffect(user);

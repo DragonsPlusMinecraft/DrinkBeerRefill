@@ -12,6 +12,10 @@
   "block.drinkbeer.horse_model_3": "Holiday Horse Model",
   "itemGroup.drinkbeer.beer": "Beer",
   "itemGroup.drinkbeer.general": "DrinkBeer General Blocks",
+  "tag.item.drinkbeer.beer": "Beer",
+  "tag.item.drinkbeer.beers": "Beers",
+  "tag.item.c.milk.milk_bottle": "Milk Bottles",
+  "tag.item.minecraft.milk_bucket": "Milk Buckets",
 
   "block.drinkbeer.beer_mug": "Miner Pale Ale",
   "block.drinkbeer.beer_mug_blaze_stout": "Blaze Stout",

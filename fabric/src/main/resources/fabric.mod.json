@@ -14,12 +14,15 @@
     ],
     "client": [
       "lekavar.lma.drinkbeer.fabric.client.FabricDrinkBeerClient"
+    ],
+    "jei_mod_plugin": [
+      "lekavar.lma.drinkbeer.compat.jei.Plugin"
     ]
   },
   "depends": {
     "fabricloader": ">=${fabric_loader_version}",
     "fabric-api": ">=${fabric_api_version}",
-    "minecraft": "~${minecraft_version}",
+    "minecraft": "=${minecraft_version}",
     "java": ">=${java_version}"
   }
 }

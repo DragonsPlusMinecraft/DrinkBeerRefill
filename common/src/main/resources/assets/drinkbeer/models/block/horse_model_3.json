@@ -1,6 +1,5 @@
 {
 	"credit": "Made with Blockbench",
-	"parent": "minecraft:block/cube_column",
 	"texture_size": [64, 64],
 	"textures": {
 		"1": "drinkbeer:block/horse_model_3",

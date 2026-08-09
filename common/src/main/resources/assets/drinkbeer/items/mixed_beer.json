@@ -1,0 +1,83 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:component",
+    "component": "drinkbeer:beer_id",
+    "cases": [
+      {
+        "when": 0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "drinkbeer:block/mixed_beer"
+        }
+      },
+      {
+        "when": 1,
+        "model": {
+          "type": "minecraft:model",
+          "model": "drinkbeer:block/beer_mug"
+        }
+      },
+      {
+        "when": 2,
+        "model": {
+          "type": "minecraft:model",
+          "model": "drinkbeer:block/beer_mug_blaze_stout"
+        }
+      },
+      {
+        "when": 3,
+        "model": {
+          "type": "minecraft:model",
+          "model": "drinkbeer:block/beer_mug_blaze_milk_stout"
+        }
+      },
+      {
+        "when": 4,
+        "model": {
+          "type": "minecraft:model",
+          "model": "drinkbeer:block/beer_mug_apple_lambic"
+        }
+      },
+      {
+        "when": 5,
+        "model": {
+          "type": "minecraft:model",
+          "model": "drinkbeer:block/beer_mug_sweet_berry_kriek"
+        }
+      },
+      {
+        "when": 6,
+        "model": {
+          "type": "minecraft:model",
+          "model": "drinkbeer:block/beer_mug_haars_icey_pale_lager"
+        }
+      },
+      {
+        "when": 7,
+        "model": {
+          "type": "minecraft:model",
+          "model": "drinkbeer:block/beer_mug_pumpkin_kvass"
+        }
+      },
+      {
+        "when": 8,
+        "model": {
+          "type": "minecraft:model",
+          "model": "drinkbeer:block/beer_mug_frothy_pink_eggnog"
+        }
+      },
+      {
+        "when": 9,
+        "model": {
+          "type": "minecraft:model",
+          "model": "drinkbeer:block/beer_mug_night_howl_kvass"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "drinkbeer:block/mixed_beer"
+    }
+  }
+}

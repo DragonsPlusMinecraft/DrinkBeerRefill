@@ -20,7 +20,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 
@@ -35,7 +35,7 @@ public class JEIBrewingRecipeCategory implements IRecipeCategory<BrewingRecipe> 
 
     public JEIBrewingRecipeCategory(IGuiHelper helper) {
         guiHelper = helper;
-        background = helper.createDrawable(ResourceLocation.fromNamespaceAndPath(DrinkBeer.MOD_ID, "textures/gui/jei/brewing_gui.png"),
+        background = helper.createDrawable(Identifier.fromNamespaceAndPath(DrinkBeer.MOD_ID, "textures/gui/jei/brewing_gui.png"),
                 0, 0, 175, 69);
         icon = helper.createDrawableItemStack(new ItemStack(ItemRegistry.BEER_MUG.get()));
     }

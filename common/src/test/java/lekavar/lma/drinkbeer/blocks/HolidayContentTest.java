@@ -60,8 +60,8 @@ class HolidayContentTest {
                 .getLightEmission());
         assertEquals(15, BlockRegistry.THE_GREAT_STAR_OF_BETHLEHEM.get().defaultBlockState()
                 .getLightEmission());
-        assertTrue(ItemRegistry.STAR_OF_BETHLEHEM.get().getDefaultInstance().has(DataComponents.FIRE_RESISTANT));
-        assertTrue(ItemRegistry.THE_GREAT_STAR_OF_BETHLEHEM.get().getDefaultInstance().has(DataComponents.FIRE_RESISTANT));
+        assertTrue(ItemRegistry.STAR_OF_BETHLEHEM.get().getDefaultInstance().has(DataComponents.DAMAGE_RESISTANT));
+        assertTrue(ItemRegistry.THE_GREAT_STAR_OF_BETHLEHEM.get().getDefaultInstance().has(DataComponents.DAMAGE_RESISTANT));
     }
 
     @Test

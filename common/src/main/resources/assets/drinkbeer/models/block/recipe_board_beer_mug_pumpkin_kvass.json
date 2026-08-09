@@ -2,6 +2,7 @@
 	"credit": "Made with Blockbench",
 	"ambientocclusion": false,
 	"textures": {
+        "transparent": "drinkbeer:block/transparent",
 		"1": "drinkbeer:block/recipe_board_back_beer_mug_pumpkin_kvass",
 		"3": "drinkbeer:block/recipe_board_beer_mug_pumpkin_kvass",
 		"particle": "drinkbeer:block/recipe_board_beer_mug_pumpkin_kvass"
@@ -58,7 +59,7 @@
 				"north": {"uv": [0, 0, 0.25, 16], "texture": "#3"},
 				"east": {"uv": [0, 0, 0.3, 16], "texture": "#3"},
 				"south": {"uv": [2, 15.5, 13.5, 16], "texture": "#3"},
-				"west": {"uv": [0, 0, 0.3, 16], "texture": "#missing"},
+				"west": {"uv": [0, 0, 0.3, 16], "texture": "#transparent"},
 				"up": {"uv": [0, 0, 1, 0.3], "texture": "#3"},
 				"down": {"uv": [15.75, 0, 16, 16], "texture": "#3"}
 			}
@@ -72,7 +73,7 @@
 				"north": {"uv": [0, 0, 0.25, 16], "texture": "#3"},
 				"east": {"uv": [0, 0, 0.3, 16], "texture": "#3"},
 				"south": {"uv": [1.75, 15.5, 13, 16], "texture": "#3"},
-				"west": {"uv": [0, 0, 0.3, 16], "texture": "#missing"},
+				"west": {"uv": [0, 0, 0.3, 16], "texture": "#transparent"},
 				"up": {"uv": [15.75, 0, 16, 16], "texture": "#3"},
 				"down": {"uv": [0, 0, 1, 0.3], "texture": "#3"}
 			}
@@ -86,7 +87,7 @@
 				"north": {"uv": [0, 0, 0.25, 16], "texture": "#3"},
 				"east": {"uv": [0, 0, 0.3, 16], "texture": "#3"},
 				"south": {"uv": [2, 15.5, 13.5, 16], "texture": "#3"},
-				"west": {"uv": [0, 0, 0.3, 16], "texture": "#missing"},
+				"west": {"uv": [0, 0, 0.3, 16], "texture": "#transparent"},
 				"up": {"uv": [0, 0, 1, 0.3], "texture": "#3"},
 				"down": {"uv": [15.75, 0, 16, 16], "texture": "#3"}
 			}

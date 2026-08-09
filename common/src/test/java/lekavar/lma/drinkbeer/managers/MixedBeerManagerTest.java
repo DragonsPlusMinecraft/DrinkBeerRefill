@@ -2,12 +2,13 @@ package lekavar.lma.drinkbeer.managers;
 
 import lekavar.lma.drinkbeer.blockentities.MixedBeerBlockEntity;
 import lekavar.lma.drinkbeer.registries.BlockRegistry;
+import lekavar.lma.drinkbeer.registries.BlockEntityRegistry;
 import lekavar.lma.drinkbeer.registries.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.TypedEntityData;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -35,7 +36,10 @@ class MixedBeerManagerTest {
         legacyRoot.put("BlockEntityTag", legacyBlockEntity);
 
         ItemStack legacyStack = new ItemStack(ItemRegistry.MIXED_BEER.get());
-        legacyStack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(legacyRoot));
+        legacyStack.set(
+                DataComponents.BLOCK_ENTITY_DATA,
+                TypedEntityData.of(BlockEntityRegistry.MIXED_BEER_TILEENTITY.get(), legacyRoot)
+        );
 
         assertEquals(6, MixedBeerManager.getBeerId(legacyStack));
         assertEquals(List.of(4, 8), MixedBeerManager.getSpiceList(legacyStack));
