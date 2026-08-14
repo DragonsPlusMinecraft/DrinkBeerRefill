@@ -1,4 +1,5 @@
 {
+  "pack.drinkbeer.create_milk_atlas": "DrinkBeer Refill: Create Milk Fluid Sprites",
   "block.drinkbeer.gift_red": "Red Gift",
   "block.drinkbeer.gift_blue": "Blue Gift",
   "block.drinkbeer.gift_green": "Green Gift",
@@ -131,6 +132,16 @@
   "config.jade.plugin_drinkbeer.beer_barrel": "Beer Barrel",
   "config.jade.plugin_drinkbeer.trade_box": "Trade Box",
   "config.jade.plugin_drinkbeer.mixed_beer": "Mixed Beer",
+
+  "fluid_type.drinkbeer.beer": "Miner Pale Ale",
+  "fluid_type.drinkbeer.blaze_stout": "Blaze Stout",
+  "fluid_type.drinkbeer.blaze_milk_stout": "Blaze Milk Stout",
+  "fluid_type.drinkbeer.apple_lambic": "Apple Lambic",
+  "fluid_type.drinkbeer.sweet_berry_kriek": "Sweet Berry Kriek",
+  "fluid_type.drinkbeer.haars_icey_pale_lager": "Haar's Icey Pale Lager",
+  "fluid_type.drinkbeer.pumpkin_kvass": "Pumpkin Kvass",
+  "fluid_type.drinkbeer.frothy_pink_eggnog": "Frothy Pink Eggnog",
+  "fluid_type.drinkbeer.night_howl_kvass": "Night Howl Kvass",
 
   "message.drinkbeer.bartending_table.drawer_closed": "Open the drawer before adding spices.",
   "message.drinkbeer.bartending_table.use_drawer": "Add spices through the open drawer.",

@@ -10,12 +10,15 @@ import lekavar.lma.drinkbeer.networking.RefreshTradeBoxPayload;
 import lekavar.lma.drinkbeer.platform.ClientPlatformHooks;
 import lekavar.lma.drinkbeer.registries.BlockEntityRegistry;
 import lekavar.lma.drinkbeer.registries.BlockRegistry;
+import lekavar.lma.drinkbeer.registries.FluidRegistry;
 import lekavar.lma.drinkbeer.registries.ItemRegistry;
 import lekavar.lma.drinkbeer.registries.MenuTypeRegistry;
 import lekavar.lma.drinkbeer.registries.ParticleTypeRegistry;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
+import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
+import net.fabricmc.fabric.api.client.render.fluid.v1.SimpleFluidRenderHandler;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.particle.FlameParticle;
 import net.minecraft.client.particle.HeartParticle;
@@ -28,6 +31,8 @@ import net.minecraft.resources.ResourceLocation;
 public final class FabricClientPlatform implements ClientPlatformHooks {
     @Override
     public void initializeClient() {
+        registerFluidRenderers();
+
         BlockRenderLayerMap.INSTANCE.putBlocks(
                 RenderType.cutout(),
                 BlockRegistry.COLORED_LIGHTS.get(),
@@ -66,5 +71,22 @@ public final class FabricClientPlatform implements ClientPlatformHooks {
         FabricPlatform.installClientPacketSender(pos ->
                 ClientPlayNetworking.send(new RefreshTradeBoxPayload(pos))
         );
+    }
+
+    private static void registerFluidRenderers() {
+        ResourceLocation waterStill = ResourceLocation.withDefaultNamespace("block/water_still");
+        ResourceLocation waterFlowing = ResourceLocation.withDefaultNamespace("block/water_flow");
+
+        for (FluidRegistry.BeerFluid beer : FluidRegistry.beers()) {
+            FluidRenderHandlerRegistry.INSTANCE.register(
+                    beer.source(),
+                    beer.flowing(),
+                    new SimpleFluidRenderHandler(
+                            waterStill,
+                            waterFlowing,
+                            beer.tintColor()
+                    )
+            );
+        }
     }
 }

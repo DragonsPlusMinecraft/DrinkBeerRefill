@@ -8,12 +8,22 @@ import lekavar.lma.drinkbeer.networking.client.ServerPayloadHandler;
 import lekavar.lma.drinkbeer.platform.BlockEntityFactory;
 import lekavar.lma.drinkbeer.platform.ExtendedMenuFactory;
 import lekavar.lma.drinkbeer.platform.PlatformHooks;
+import lekavar.lma.drinkbeer.platform.PlatformHooks.FluidPair;
 import lekavar.lma.drinkbeer.platform.RegistryHandle;
 import lekavar.lma.drinkbeer.registries.BlockEntityRegistry;
+import lekavar.lma.drinkbeer.registries.FluidRegistry;
+import lekavar.lma.drinkbeer.registries.ItemRegistry;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributeHandler;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
+import net.fabricmc.fabric.api.transfer.v1.fluid.base.EmptyItemFluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.fluid.base.FullItemFluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -21,6 +31,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -29,6 +40,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.material.FlowingFluid;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -79,6 +91,25 @@ public final class FabricPlatform implements PlatformHooks {
     }
 
     @Override
+    public FluidPair registerFluidPair(String path) {
+        FlowingFluid[] pair = new FlowingFluid[2];
+        pair[0] = new FabricBeerFluid.Source(() -> pair[1]);
+        pair[1] = new FabricBeerFluid.Flowing(() -> pair[0]);
+
+        RegistryHandle<? extends FlowingFluid> source = register(
+                BuiltInRegistries.FLUID,
+                path,
+                () -> pair[0]
+        );
+        RegistryHandle<? extends FlowingFluid> flowing = register(
+                BuiltInRegistries.FLUID,
+                "flowing_" + path,
+                () -> pair[1]
+        );
+        return new FluidPair(source, flowing);
+    }
+
+    @Override
     public void registerNetworking() {
         PayloadTypeRegistry.playC2S().register(RefreshTradeBoxPayload.TYPE, RefreshTradeBoxPayload.STREAM_CODEC);
         ServerPlayNetworking.registerGlobalReceiver(
@@ -94,6 +125,36 @@ public final class FabricPlatform implements PlatformHooks {
                 (blockEntity, direction) -> new FabricItemStorageAdapter(blockEntity.getItemHandler(direction)),
                 BlockEntityRegistry.BEER_BARREL_TILEENTITY.get()
         );
+
+        registerBeerMugFluidStorage();
+    }
+
+    private void registerBeerMugFluidStorage() {
+        long serving = FluidConstants.BUCKET * FluidRegistry.SERVING_MILLIBUCKETS / 1000;
+
+        for (FluidRegistry.BeerFluid beer : FluidRegistry.beers()) {
+            FluidVariantAttributeHandler attributes = new FluidVariantAttributeHandler() {
+                @Override
+                public Component getName(FluidVariant variant) {
+                    return Component.translatable(beer.translationKey());
+                }
+            };
+            FluidVariantAttributes.register(beer.source(), attributes);
+            FluidVariantAttributes.register(beer.flowing(), attributes);
+
+            FluidStorage.ITEM.registerForItems(
+                    (stack, context) -> new FullItemFluidStorage(
+                            context,
+                            ItemRegistry.EMPTY_BEER_MUG.get(),
+                            FluidVariant.of(beer.source()),
+                            serving
+                    ),
+                    beer.filledMug()
+            );
+            FluidStorage.combinedItemApiProvider(ItemRegistry.EMPTY_BEER_MUG.get()).register(context ->
+                    new EmptyItemFluidStorage(context, beer.filledMug(), beer.source(), serving)
+            );
+        }
     }
 
     @Override

@@ -7,6 +7,7 @@ import lekavar.lma.drinkbeer.registries.BlockEntityRegistry;
 import lekavar.lma.drinkbeer.registries.BlockRegistry;
 import lekavar.lma.drinkbeer.registries.CreativeTabRegistry;
 import lekavar.lma.drinkbeer.registries.DataComponentTypeRegistry;
+import lekavar.lma.drinkbeer.registries.FluidRegistry;
 import lekavar.lma.drinkbeer.registries.ItemRegistry;
 import lekavar.lma.drinkbeer.registries.MenuTypeRegistry;
 import lekavar.lma.drinkbeer.registries.MobEffectRegistry;
@@ -28,6 +29,7 @@ public final class DrinkBeer {
         ParticleTypeRegistry.init();
         BlockRegistry.init();
         ItemRegistry.init();
+        FluidRegistry.init();
         BlockEntityRegistry.init();
         MenuTypeRegistry.init();
         RecipeRegistry.init();

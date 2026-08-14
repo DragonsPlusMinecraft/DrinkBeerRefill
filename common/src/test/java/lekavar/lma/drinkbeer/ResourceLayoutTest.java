@@ -131,6 +131,40 @@ class ResourceLayoutTest {
     }
 
     @Test
+    void fluidTagsCoverEverySourceAndFlowingVariant() throws IOException {
+        Path fluidTags = RESOURCES.resolve(Path.of("data", DrinkBeer.MOD_ID, "tags", "fluid"));
+        try (var files = Files.list(fluidTags)) {
+            assertEquals(10, files.filter(path -> path.toString().endsWith(".json")).count());
+        }
+
+        for (var beer : lekavar.lma.drinkbeer.registries.FluidRegistry.beers()) {
+            Set<String> values;
+            try (Reader reader = Files.newBufferedReader(fluidTags.resolve(beer.path() + ".json"))) {
+                values = JsonParser.parseReader(reader).getAsJsonObject().getAsJsonArray("values").asList().stream()
+                        .map(JsonElement::getAsString)
+                        .collect(Collectors.toSet());
+            }
+            assertEquals(
+                    Set.of(DrinkBeer.MOD_ID + ":" + beer.path(), DrinkBeer.MOD_ID + ":" + beer.flowingPath()),
+                    values
+            );
+        }
+
+        Set<String> aggregate;
+        try (Reader reader = Files.newBufferedReader(fluidTags.resolve("beers.json"))) {
+            aggregate = JsonParser.parseReader(reader).getAsJsonObject().getAsJsonArray("values").asList().stream()
+                    .map(JsonElement::getAsString)
+                    .collect(Collectors.toSet());
+        }
+        assertEquals(
+                lekavar.lma.drinkbeer.registries.FluidRegistry.beers().stream()
+                        .map(beer -> "#" + DrinkBeer.MOD_ID + ":" + beer.path())
+                        .collect(Collectors.toSet()),
+                aggregate
+        );
+    }
+
+    @Test
     void localClientResourceReferencesResolve() throws IOException {
         Path assets = RESOURCES.resolve(Path.of("assets", DrinkBeer.MOD_ID));
         Path blockstates = assets.resolve("blockstates");

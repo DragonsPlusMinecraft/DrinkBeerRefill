@@ -17,6 +17,7 @@ class RegistrySnapshotTest {
     private static final List<NamedRegistry> REGISTRIES = List.of(
             new NamedRegistry("block", BuiltInRegistries.BLOCK),
             new NamedRegistry("item", BuiltInRegistries.ITEM),
+            new NamedRegistry("fluid", BuiltInRegistries.FLUID),
             new NamedRegistry("mob_effect", BuiltInRegistries.MOB_EFFECT),
             new NamedRegistry("sound_event", BuiltInRegistries.SOUND_EVENT),
             new NamedRegistry("particle_type", BuiltInRegistries.PARTICLE_TYPE),

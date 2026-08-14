@@ -1,0 +1,12 @@
+{
+  "sources": [
+    {
+      "type": "single",
+      "resource": "create:fluid/milk_still"
+    },
+    {
+      "type": "single",
+      "resource": "create:fluid/milk_flow"
+    }
+  ]
+}

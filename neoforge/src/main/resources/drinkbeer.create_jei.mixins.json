@@ -1,0 +1,13 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "lekavar.lma.drinkbeer.neoforge.compat.create.jei.mixin",
+  "plugin": "lekavar.lma.drinkbeer.neoforge.compat.create.jei.CreateJeiMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "SpoutCategoryMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

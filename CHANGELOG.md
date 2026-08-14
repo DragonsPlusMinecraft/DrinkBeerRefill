@@ -1,27 +1,19 @@
-## Drink Beer Refill 1.4.0-beta.2
+## Drink Beer Refill 1.4.1
 
-This release migrates the project to a native Fabric and NeoForge multi-loader layout for Minecraft 1.21.1. It does not depend on Architectury Loom, Architectury Gradle Plugin, or Architectury API.
+This version is preparation for mod cross-mod compat.
 
 ### Added
-
-- Added a Fabric 0.19.3 build with Fabric API 0.116.12+1.21.1 and Fabric Loom 1.14.10.
-- Added Fabric implementations for registration, extended menus, C2S networking, Transfer API inventory automation, client registration, and per-world JSON configuration.
-- Added shared registry-ID snapshots, loader-specific configuration tests, and five shared Holiday GameTests with thin Fabric and NeoForge discovery adapters.
-- Added CI and publishing tasks that build, test, and publish separate Fabric and NeoForge artifacts.
-
-### Changed
-
-- Split the project into `common`, `fabric`, and `neoforge` modules. Each loader compiles the shared sources in its own toolchain; no common JAR is embedded or published.
-- Moved shared gameplay to vanilla APIs behind small platform and client hooks. NeoForge retains deferred registration and capabilities; Fabric uses direct registration and Transfer API storage.
-- Replaced loader-specific inventory and menu primitives in shared code with vanilla containers and slots while preserving all automation directions and restrictions.
-- Kept Minecraft 1.21.1, Java 21, NeoForge 21.1.244, ModDevGradle 2.0.143, NeoForm `1.21.1-20240808.144430`, Parchment `2024.11.17`, and JEI 19.21.0.246.
-- Fabric now stores server settings in `<world>/serverconfig/drinkbeer-server.json`; NeoForge continues to use `drinkbeer-server.toml` with matching fields, defaults, and ranges.
+- Added tank-only source and flowing fluids for all nine base beers, with one mug equal to 250 mB.
+- Added standard Fabric Transfer API and NeoForge fluid-item capabilities for draining and filling beer mugs.
+- Added per-beer fluid tags, the aggregate `#drinkbeer:beers` tag, localized fluid names, and cross-loader regression coverage.
+- Added an optional NeoForge Create milk-sprite atlas pack that contains metadata only and activates only when both external Create textures exist.
 
 ### Fixed
-
-- Fixed transparent planes on the holiday stars and colored lights rendering as black on Fabric by registering their cutout render layer.
+- Fixed Create 6.0.x JEI Spout pages showing 1000 mB for beer mugs that actually accept 250 mB, without adding duplicate filling recipes.
 
 ### Compatibility
 
-- Preserved registry IDs, resource paths, NBT and codec formats, including the existing `drinkbeer:refreash_tradebox` payload ID.
-- Verified both dedicated-server GameTest suites and loading NeoForge-created test worlds on Fabric and Fabric-created test worlds on NeoForge.
+- Beer fluids are non-placeable and have no buckets. Create is optional; NeoForge creamy beers reference its milk textures only when both files are available, while Fabric and all fallback paths use vanilla water textures.
+- The Create/JEI display patch is optional, client-only, limited to DrinkBeer fluids, and fails closed if Create changes the targeted method.
+- Mixed beer remains item-only so its base-beer and spice components are never discarded by fluid conversion.
+- Beer barrels keep their existing mug-based production and are not converted into fluid tanks.

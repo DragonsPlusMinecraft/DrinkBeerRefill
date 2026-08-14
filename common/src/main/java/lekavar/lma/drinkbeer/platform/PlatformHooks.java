@@ -9,6 +9,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.material.FlowingFluid;
 
 import java.util.function.Supplier;
 
@@ -26,6 +27,8 @@ public interface PlatformHooks {
             Supplier<? extends Block>... validBlocks
     );
 
+    FluidPair registerFluidPair(String path);
+
     void registerNetworking();
 
     void registerConfig();
@@ -33,4 +36,10 @@ public interface PlatformHooks {
     void openMenu(Player player, MenuProvider provider, BlockPos pos);
 
     void sendRefreshTradeBox(BlockPos pos);
+
+    record FluidPair(
+            RegistryHandle<? extends FlowingFluid> source,
+            RegistryHandle<? extends FlowingFluid> flowing
+    ) {
+    }
 }

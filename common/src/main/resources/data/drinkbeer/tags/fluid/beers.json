@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "#drinkbeer:beer",
+    "#drinkbeer:blaze_stout",
+    "#drinkbeer:blaze_milk_stout",
+    "#drinkbeer:apple_lambic",
+    "#drinkbeer:sweet_berry_kriek",
+    "#drinkbeer:haars_icey_pale_lager",
+    "#drinkbeer:pumpkin_kvass",
+    "#drinkbeer:frothy_pink_eggnog",
+    "#drinkbeer:night_howl_kvass"
+  ]
+}

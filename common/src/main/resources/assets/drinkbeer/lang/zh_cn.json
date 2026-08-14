@@ -1,4 +1,5 @@
 {
+  "pack.drinkbeer.create_milk_atlas": "饮酒作乐：机械动力牛奶流体纹理",
   "block.drinkbeer.gift_red": "红色礼物",
   "block.drinkbeer.gift_blue": "蓝色礼物",
   "block.drinkbeer.gift_green": "绿色礼物",
@@ -131,6 +132,16 @@
   "config.jade.plugin_drinkbeer.beer_barrel": "啤酒桶",
   "config.jade.plugin_drinkbeer.trade_box": "贸易箱",
   "config.jade.plugin_drinkbeer.mixed_beer": "风味啤酒",
+
+  "fluid_type.drinkbeer.beer": "矿工淡色艾尔",
+  "fluid_type.drinkbeer.blaze_stout": "烈焰世涛",
+  "fluid_type.drinkbeer.blaze_milk_stout": "烈焰牛奶世涛",
+  "fluid_type.drinkbeer.apple_lambic": "苹果兰比克",
+  "fluid_type.drinkbeer.sweet_berry_kriek": "甜浆果克里克",
+  "fluid_type.drinkbeer.haars_icey_pale_lager": "哈尔冰爽淡色拉格",
+  "fluid_type.drinkbeer.pumpkin_kvass": "南瓜格瓦斯",
+  "fluid_type.drinkbeer.frothy_pink_eggnog": "泡沫粉红蛋奶酒",
+  "fluid_type.drinkbeer.night_howl_kvass": "夜嚎格瓦斯",
 
   "message.drinkbeer.bartending_table.drawer_closed": "请先打开抽屉再加入香料。",
   "message.drinkbeer.bartending_table.use_drawer": "请从打开的抽屉处加入香料。",

@@ -6,29 +6,39 @@ import lekavar.lma.drinkbeer.networking.client.ServerPayloadHandler;
 import lekavar.lma.drinkbeer.platform.BlockEntityFactory;
 import lekavar.lma.drinkbeer.platform.ExtendedMenuFactory;
 import lekavar.lma.drinkbeer.platform.PlatformHooks;
+import lekavar.lma.drinkbeer.platform.PlatformHooks.FluidPair;
 import lekavar.lma.drinkbeer.platform.RegistryHandle;
 import lekavar.lma.drinkbeer.registries.BlockEntityRegistry;
+import lekavar.lma.drinkbeer.registries.FluidRegistry;
+import lekavar.lma.drinkbeer.registries.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.material.FlowingFluid;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
+import net.neoforged.neoforge.common.SoundActions;
+import net.neoforged.neoforge.fluids.BaseFlowingFluid;
+import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -93,6 +103,35 @@ public final class NeoForgePlatform implements PlatformHooks {
     }
 
     @Override
+    public FluidPair registerFluidPair(String path) {
+        RegistryHandle<FluidType> type = register(NeoForgeRegistries.FLUID_TYPES, path, () ->
+                new FluidType(FluidType.Properties.create()
+                        .sound(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL)
+                        .sound(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY)
+                        .sound(SoundActions.FLUID_VAPORIZE, SoundEvents.FIRE_EXTINGUISH))
+        );
+
+        FluidPair[] pair = new FluidPair[1];
+        BaseFlowingFluid.Properties properties = new BaseFlowingFluid.Properties(
+                type,
+                () -> pair[0].source().get(),
+                () -> pair[0].flowing().get()
+        );
+        RegistryHandle<? extends FlowingFluid> source = register(
+                BuiltInRegistries.FLUID,
+                path,
+                () -> new BaseFlowingFluid.Source(properties)
+        );
+        RegistryHandle<? extends FlowingFluid> flowing = register(
+                BuiltInRegistries.FLUID,
+                "flowing_" + path,
+                () -> new BaseFlowingFluid.Flowing(properties)
+        );
+        pair[0] = new FluidPair(source, flowing);
+        return pair[0];
+    }
+
+    @Override
     public void registerNetworking() {
         modEventBus.addListener(this::registerPayloads);
         modEventBus.addListener(this::registerCapabilities);
@@ -116,6 +155,17 @@ public final class NeoForgePlatform implements PlatformHooks {
                 Capabilities.ItemHandler.BLOCK,
                 BlockEntityRegistry.BEER_BARREL_TILEENTITY.get(),
                 (blockEntity, direction) -> new NeoForgeItemHandlerAdapter(blockEntity.getItemHandler(direction))
+        );
+
+        event.registerItem(
+                Capabilities.FluidHandler.ITEM,
+                (stack, ignored) -> new NeoForgeBeerMugFluidHandler(stack),
+                ItemRegistry.EMPTY_BEER_MUG.get()
+        );
+        event.registerItem(
+                Capabilities.FluidHandler.ITEM,
+                (stack, ignored) -> new NeoForgeBeerMugFluidHandler(stack),
+                FluidRegistry.beers().stream().map(FluidRegistry.BeerFluid::filledMug).toArray(Item[]::new)
         );
     }
 
