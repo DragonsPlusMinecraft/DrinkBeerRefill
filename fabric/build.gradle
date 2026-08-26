@@ -69,7 +69,7 @@ publishMods {
     additionalFiles.from tasks.remapSourcesJar.archiveFile
     changelog = rootProject.file('CHANGELOG.md').text
     version = project.version
-    type = BETA
+    type = STABLE
     displayName = "Drink Beer Refill ${mod_version} for ${minecraft_version} (Fabric)"
     modLoaders.add('fabric')
 

@@ -49,7 +49,7 @@ public class SpiceBlockItem extends BlockItem {
         if (blockId == null) {
             throw new IllegalStateException("Block must be registered before its item is constructed");
         }
-        return new Item.Properties().setId(ResourceKey.create(Registries.ITEM, blockId));
+        return new Item.Properties().setId(ResourceKey.create(Registries.ITEM, blockId)).useBlockDescriptionPrefix();
     }
 
     @Override

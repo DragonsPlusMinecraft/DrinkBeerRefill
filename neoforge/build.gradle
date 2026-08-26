@@ -70,7 +70,7 @@ publishMods {
     additionalFiles.from tasks.sourcesJar.archiveFile
     changelog = rootProject.file('CHANGELOG.md').text
     version = project.version
-    type = BETA
+    type = STABLE
     displayName = "Drink Beer Refill ${mod_version} for ${minecraft_version} (NeoForge)"
     modLoaders.add('neoforge')
 

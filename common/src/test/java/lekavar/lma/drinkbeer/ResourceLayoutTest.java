@@ -3,6 +3,7 @@ package lekavar.lma.drinkbeer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.BlockItem;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -105,18 +106,29 @@ class ResourceLayoutTest {
 
     @Test
     void englishAndChineseLanguageFilesExposeTheSameKeys() throws IOException {
-        Path languageDirectory = RESOURCES.resolve(Path.of("assets", DrinkBeer.MOD_ID, "lang"));
-        Set<String> englishKeys;
-        Set<String> chineseKeys;
+        assertEquals(languageKeys("en_us"), languageKeys("zh_cn"));
+    }
 
-        try (Reader reader = Files.newBufferedReader(languageDirectory.resolve("en_us.json"))) {
-            englishKeys = JsonParser.parseReader(reader).getAsJsonObject().keySet();
-        }
-        try (Reader reader = Files.newBufferedReader(languageDirectory.resolve("zh_cn.json"))) {
-            chineseKeys = JsonParser.parseReader(reader).getAsJsonObject().keySet();
-        }
+    @Test
+    void registeredBlockItemsReuseLocalizedBlockNames() throws IOException {
+        Set<String> englishKeys = languageKeys("en_us");
+        Set<String> chineseKeys = languageKeys("zh_cn");
+        List<BlockItem> blockItems = BuiltInRegistries.ITEM.stream()
+                .filter(item -> BuiltInRegistries.ITEM.getKey(item).getNamespace().equals(DrinkBeer.MOD_ID))
+                .filter(BlockItem.class::isInstance)
+                .map(BlockItem.class::cast)
+                .toList();
 
-        assertEquals(englishKeys, chineseKeys);
+        assertFalse(blockItems.isEmpty());
+        for (BlockItem blockItem : blockItems) {
+            String itemId = BuiltInRegistries.ITEM.getKey(blockItem).toString();
+            String descriptionId = blockItem.getDescriptionId();
+            assertEquals(blockItem.getBlock().getDescriptionId(), descriptionId, itemId);
+            assertTrue(englishKeys.contains(descriptionId),
+                    () -> descriptionId + " is missing from en_us.json for " + itemId);
+            assertTrue(chineseKeys.contains(descriptionId),
+                    () -> descriptionId + " is missing from zh_cn.json for " + itemId);
+        }
     }
 
     @Test
@@ -209,6 +221,13 @@ class ResourceLayoutTest {
         java.util.ArrayList<String> values = new java.util.ArrayList<>();
         collectStringProperties(element, propertyName, values);
         return values;
+    }
+
+    private static Set<String> languageKeys(String language) throws IOException {
+        Path languageFile = RESOURCES.resolve(Path.of("assets", DrinkBeer.MOD_ID, "lang", language + ".json"));
+        try (Reader reader = Files.newBufferedReader(languageFile)) {
+            return Set.copyOf(JsonParser.parseReader(reader).getAsJsonObject().keySet());
+        }
     }
 
     private static void collectStringProperties(JsonElement element, String propertyName, List<String> values) {
