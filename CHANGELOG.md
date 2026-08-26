@@ -1,13 +1,16 @@
-## Drink Beer Refill 1.4.0-beta.3 (Minecraft 26.2)
+## Drink Beer Refill 1.4.0 (Minecraft 26.2)
+
+### Fixed
+
+- Fixed block items displaying raw `item.drinkbeer.*` translation keys instead of localized names on Fabric and NeoForge.
+- Fixed NeoForge metadata rejecting compatible newer patch releases.
 
 ### Changed
 
-- Added Minecraft 26.2 support for Fabric and NeoForge.
-- Updated Fabric API support to 0.156.0+26.2, NeoForge support to 26.2.0.53-beta, and JEI recipe integration to 30.16.0.132.
-- Preserved the existing gameplay, recipes, automation behavior, registry IDs, saved-data keys, configuration keys, and network payload IDs.
+- Promoted the Fabric and NeoForge builds from Beta to Stable.
+- NeoForge 26.2.0.53-beta and newer are now supported for Minecraft 26.2.
 
 ### Important
 
-- Java 25 is required.
-- The NeoForge 26.2 build is Beta.
+- Minecraft 26.2 and Java 25 are required.
 - Minecraft-version branches are independent. Cross-version world upgrades are not supported; back up your world before opening it with a different Minecraft version.

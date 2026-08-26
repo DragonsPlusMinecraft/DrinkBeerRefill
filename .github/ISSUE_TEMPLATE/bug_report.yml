@@ -17,7 +17,7 @@ body:
       description: Choose the build that matches the mod you downloaded.
       options:
         - Fabric · Minecraft 26.2
-        - NeoForge · Minecraft 26.2 (Beta)
+        - NeoForge · Minecraft 26.2
     validations:
       required: true
 
@@ -26,7 +26,7 @@ body:
     attributes:
       label: Mod version (optional)
       description: Copy the DrinkBeer Refill version from the Mods screen or the jar filename if available.
-      placeholder: "Example: 1.4.0-beta.3"
+      placeholder: "Example: 1.4.0"
 
   - type: textarea
     id: details
