@@ -32,7 +32,7 @@ public class BeerBlockItem extends BlockItem implements Consumable.OverrideConsu
         if (blockId == null) {
             throw new IllegalStateException("Block must be registered before its item is constructed");
         }
-        return new Properties().setId(ResourceKey.create(Registries.ITEM, blockId));
+        return new Properties().setId(ResourceKey.create(Registries.ITEM, blockId)).useBlockDescriptionPrefix();
     }
 
     public SoundEvent getEatingSound() {
