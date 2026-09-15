@@ -8,6 +8,7 @@ import lekavar.lma.drinkbeer.utils.dataComponent.SpiceData;
 import lekavar.lma.drinkbeer.utils.mixedbeer.Flavors;
 import lekavar.lma.drinkbeer.utils.mixedbeer.Spices;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.LivingEntity;
@@ -37,9 +38,11 @@ public class MixedBeerBlockItem extends BeerBlockItem {
         //Base beer
         int beerId = MixedBeerManager.getBeerId(stack);
         Item beerItem = Beers.byId(beerId).getBeerItem();
-        String beerName = beerId > Beers.EMPTY_BEER_ID ? "block.drinkbeer." + beerItem.toString()
+        String beerName = beerId > Beers.EMPTY_BEER_ID ? beerItem.getDescriptionId()
                 : MixedBeerManager.getUnmixedToolTipTranslationKey();
-        String beerTooltip = beerId > Beers.EMPTY_BEER_ID ? "item.drinkbeer." + beerItem + ".tooltip"
+        var beerKey = BuiltInRegistries.ITEM.getKey(beerItem);
+        String beerTooltip = beerId > Beers.EMPTY_BEER_ID
+                ? "item." + beerKey.getNamespace() + "." + beerKey.getPath() + ".tooltip"
                 : "";
 
         tooltip.add(Component.translatable(beerName).setStyle(Style.EMPTY.applyFormat(ChatFormatting.BLUE)));
@@ -94,8 +97,8 @@ public class MixedBeerBlockItem extends BeerBlockItem {
     public Component getMixedBeerName(ItemStack stack) {
         int beerId = MixedBeerManager.getBeerId(stack);
         Item beerItem = Beers.byId(beerId).getBeerItem();
-        String beerName = beerId > Beers.EMPTY_BEER_ID ? "block.drinkbeer." + beerItem.toString() : "block.drinkbeer.empty_beer_mug";
-        Component name = Component.translatable(beerName).append(Component.translatable("block.drinkbeer." + MixedBeerManager.getMixedBeerTranslationKey())).setStyle(Style.EMPTY.applyFormat(ChatFormatting.YELLOW));
+        String beerName = beerId > Beers.EMPTY_BEER_ID ? beerItem.getDescriptionId() : "block.drinkbeer.empty_beer_mug";
+        Component name = Component.translatable(beerName).append(Component.translatable(MixedBeerManager.getMixedBeerTranslationKey())).setStyle(Style.EMPTY.applyFormat(ChatFormatting.YELLOW));
         return name;
     }
 

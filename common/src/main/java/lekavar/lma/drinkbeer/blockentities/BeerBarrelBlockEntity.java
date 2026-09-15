@@ -49,6 +49,7 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
     private static final int OUTPUT_SLOT = 5;
 
     private final BrewingInventory brewingInventory = new BrewingInventory(this);
+    private final IBrewingInventory recipeInput = new BrewingRecipeInput(brewingInventory);
     private final ItemHandlerView combinedItemHandler = new BarrelItemHandler(this, HandlerMode.COMBINED);
     private final ItemHandlerView ingredientItemHandler = new BarrelItemHandler(this, HandlerMode.INGREDIENT_INPUT);
     private final ItemHandlerView cupItemHandler = new BarrelItemHandler(this, HandlerMode.CUP_INPUT);
@@ -119,7 +120,7 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
         }
 
         RecipeHolder<BrewingRecipe> recipeHolder = findRecipe();
-        if (recipeHolder == null || !recipeHolder.value().isCupQualified(brewingInventory)) {
+        if (recipeHolder == null || !recipeHolder.value().isCupQualified(recipeInput)) {
             return;
         }
 
@@ -149,7 +150,7 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
         }
 
         RecipeHolder<BrewingRecipe> recipeHolder = findRecipe();
-        if (recipeHolder == null || !recipeHolder.value().isCupQualified(brewingInventory)) {
+        if (recipeHolder == null || !recipeHolder.value().isCupQualified(recipeInput)) {
             statusCode = STATUS_WAITING;
             updateBE();
             return;
@@ -164,12 +165,12 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
             return null;
         }
         return level.getRecipeManager()
-                .getRecipeFor(RecipeRegistry.RECIPE_TYPE_BREWING.get(), brewingInventory, level)
+                .getRecipeFor(RecipeRegistry.RECIPE_TYPE_BREWING.get(), recipeInput, level)
                 .orElse(null);
     }
 
     private void completeBrewing(BrewingRecipe recipe) {
-        ItemStack result = recipe.assemble(brewingInventory, level.registryAccess());
+        ItemStack result = recipe.assemble(recipeInput, level.registryAccess());
         if (result.isEmpty()) {
             statusCode = STATUS_WAITING;
             updateBE();
@@ -312,7 +313,31 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
         return tag;
     }
 
-    public static class BrewingInventory extends SimpleContainer implements IBrewingInventory {
+    // Container and RecipeInput methods have different runtime names on Fabric.
+    // Keep the recipe interface separate from SimpleContainer's inherited methods.
+    private record BrewingRecipeInput(BrewingInventory inventory) implements IBrewingInventory {
+        @Override
+        public ItemStack getItem(int slot) {
+            return inventory.getItem(slot);
+        }
+
+        @Override
+        public int size() {
+            return inventory.getContainerSize();
+        }
+
+        @Override
+        public List<ItemStack> getIngredients() {
+            return inventory.getIngredients();
+        }
+
+        @Override
+        public ItemStack getCup() {
+            return inventory.getCup();
+        }
+    }
+
+    public static class BrewingInventory extends SimpleContainer {
         private final BeerBarrelBlockEntity blockEntity;
 
         public BrewingInventory(BeerBarrelBlockEntity blockEntity) {
@@ -321,7 +346,6 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
         }
 
         @NotNull
-        @Override
         public List<ItemStack> getIngredients() {
             List<ItemStack> ingredients = new ArrayList<>();
             for (int slot = 0; slot < INGREDIENT_SLOT_COUNT; slot++) {
@@ -333,7 +357,6 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
         }
 
         @NotNull
-        @Override
         public ItemStack getCup() {
             return getItem(CUP_SLOT).copy();
         }
@@ -357,7 +380,6 @@ public class BeerBarrelBlockEntity extends BlockEntity implements MenuProvider {
                     blockEntity.worldPosition.getZ() + 0.5D) <= 64.0D;
         }
 
-        @Override
         public int size() {
             return 6;
         }
