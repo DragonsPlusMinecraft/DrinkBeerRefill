@@ -143,7 +143,7 @@ public class MixedBeerManager {
     }
 
     public static String getMixedBeerTranslationKey() {
-        return ItemRegistry.MIXED_BEER.get().asItem().toString();
+        return ItemRegistry.MIXED_BEER.get().getDescriptionId();
     }
 
     public static String getBaseBeerToolTipTranslationKey() {
