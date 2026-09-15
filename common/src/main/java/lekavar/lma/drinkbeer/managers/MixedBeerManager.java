@@ -13,7 +13,7 @@ import lekavar.lma.drinkbeer.utils.dataComponent.SpiceData;
 import lekavar.lma.drinkbeer.utils.mixedbeer.Flavors;
 import lekavar.lma.drinkbeer.utils.mixedbeer.MixedBeerOnUsing;
 import lekavar.lma.drinkbeer.utils.mixedbeer.Spices;
-import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -124,7 +124,7 @@ public class MixedBeerManager {
     }
 
     public static String getMixedBeerTranslationKey() {
-        return ItemRegistry.MIXED_BEER.get().asItem().toString();
+        return ItemRegistry.MIXED_BEER.get().getDescriptionId();
     }
 
     public static String getBaseBeerToolTipTranslationKey() {
@@ -180,7 +180,7 @@ public class MixedBeerManager {
         }
         //Apply status effects
         for (Pair<MobEffect, Integer> statusEffectPair : mixedBeerOnUsing.getStatusEffectList()) {
-            user.addEffect(new MobEffectInstance(Holder.direct(statusEffectPair.getKey()), statusEffectPair.getValue()));
+            user.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(statusEffectPair.getKey()), statusEffectPair.getValue()));
         }
         //Apply flavor actions
         SpiceAndFlavorManager.applyFlavorAction(mixedBeerOnUsing, world, user);
