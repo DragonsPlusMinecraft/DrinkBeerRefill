@@ -1,6 +1,5 @@
 package lekavar.lma.drinkbeer.blocks;
 
-import com.mojang.serialization.MapCodec;
 import lekavar.lma.drinkbeer.blockentities.TradeBoxBlockEntity;
 import lekavar.lma.drinkbeer.managers.TradeBoxManager;
 import lekavar.lma.drinkbeer.platform.Platform;
@@ -31,7 +30,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import javax.annotation.Nullable;
 
 public class TradeboxBlock extends BaseEntityBlock {
-    public static final MapCodec<TradeboxBlock> CODEC = simpleCodec(TradeboxBlock::new);
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final VoxelShape SHAPE = Block.box(0, 0.01, 0, 16, 16, 16);
 
@@ -75,11 +73,6 @@ public class TradeboxBlock extends BaseEntityBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
         return new TradeBoxBlockEntity(TradeBoxManager.COOLING_TIME_ON_PLACE, blockPos, blockState);
-    }
-
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
     }
 
     @Override

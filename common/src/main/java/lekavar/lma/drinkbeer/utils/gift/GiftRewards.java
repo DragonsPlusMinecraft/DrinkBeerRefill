@@ -1,6 +1,7 @@
 package lekavar.lma.drinkbeer.utils.gift;
 
 import lekavar.lma.drinkbeer.registries.ItemRegistry;
+import lekavar.lma.drinkbeer.utils.ItemStackHelper;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -77,10 +78,7 @@ public final class GiftRewards {
     }
 
     public static void giveOrDrop(Player player, ItemStack stack) {
-        player.getInventory().add(stack);
-        if (!stack.isEmpty()) {
-            player.drop(stack, false);
-        }
+        ItemStackHelper.giveToPlayer(player, stack);
     }
 
     private GiftRewards() {

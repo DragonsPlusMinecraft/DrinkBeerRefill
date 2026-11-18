@@ -2,6 +2,7 @@ package lekavar.lma.drinkbeer.items;
 
 import lekavar.lma.drinkbeer.registries.ItemRegistry;
 import lekavar.lma.drinkbeer.registries.SoundEventRegistry;
+import lekavar.lma.drinkbeer.utils.ItemStackHelper;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -49,14 +50,12 @@ public class BeerBlockItem extends BlockItem implements Consumable.OverrideConsu
     }
 
     public void giveEmptyMugBack(LivingEntity user) {
-        if (!(user instanceof Player) || !((Player) user).isCreative()) {
-            ItemStack emptyMugItemStack = new ItemStack(ItemRegistry.EMPTY_BEER_MUG.get(), 1);
-            if (user instanceof Player) {
-                if (!((Player) user).addItem(emptyMugItemStack))
-                    ((Player) user).drop(emptyMugItemStack, false);
-            } else if (user.level() instanceof ServerLevel serverLevel) {
-                user.spawnAtLocation(serverLevel, emptyMugItemStack);
+        if (user instanceof Player player) {
+            if (!player.isCreative()) {
+                ItemStackHelper.giveToPlayer(player, new ItemStack(ItemRegistry.EMPTY_BEER_MUG.get()));
             }
+        } else if (user.level() instanceof ServerLevel serverLevel) {
+            user.spawnAtLocation(serverLevel, new ItemStack(ItemRegistry.EMPTY_BEER_MUG.get()));
         }
     }
 }

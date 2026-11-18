@@ -1,6 +1,5 @@
 package lekavar.lma.drinkbeer.blocks;
 
-import com.mojang.serialization.MapCodec;
 import lekavar.lma.drinkbeer.blockentities.BartendingTableBlockEntity;
 import lekavar.lma.drinkbeer.items.SpiceBlockItem;
 import lekavar.lma.drinkbeer.registries.DrinkBeerTags;
@@ -37,7 +36,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import javax.annotation.Nullable;
 
 public class BartendingTableBlock extends BaseEntityBlock {
-    public static final MapCodec<BartendingTableBlock> CODEC = simpleCodec(BartendingTableBlock::new);
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty OPENED = BooleanProperty.create("opened");
     public static final IntegerProperty TYPE = IntegerProperty.create("type", 1, 2);
@@ -72,11 +70,6 @@ public class BartendingTableBlock extends BaseEntityBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
         return new BartendingTableBlockEntity(blockPos, blockState);
-    }
-
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
     }
 
     @Override

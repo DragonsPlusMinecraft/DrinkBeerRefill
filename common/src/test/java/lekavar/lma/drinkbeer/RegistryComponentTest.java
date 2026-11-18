@@ -16,7 +16,7 @@ public abstract class RegistryComponentTest {
         bindDataComponents();
     }
 
-    private static synchronized void bindDataComponents() {
+    public static synchronized void bindDataComponents() {
         if (initialized || componentsAreBound()) {
             initialized = true;
             return;
@@ -29,7 +29,7 @@ public abstract class RegistryComponentTest {
         try {
             SharedConstants.IS_RUNNING_IN_IDE = false;
             BuiltInRegistries.DATA_COMPONENT_INITIALIZERS
-                    .build(VanillaRegistries.createLookup())
+                    .build(VanillaRegistries.createWorldLookup())
                     .forEach(components -> components.apply());
         } finally {
             SharedConstants.IS_RUNNING_IN_IDE = runningInIde;

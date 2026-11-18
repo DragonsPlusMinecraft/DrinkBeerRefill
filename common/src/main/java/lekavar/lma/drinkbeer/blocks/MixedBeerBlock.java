@@ -1,6 +1,5 @@
 package lekavar.lma.drinkbeer.blocks;
 
-import com.mojang.serialization.MapCodec;
 import lekavar.lma.drinkbeer.blockentities.MixedBeerBlockEntity;
 import lekavar.lma.drinkbeer.managers.SpiceAndFlavorManager;
 import lekavar.lma.drinkbeer.utils.ItemStackHelper;
@@ -33,7 +32,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class MixedBeerBlock extends BaseEntityBlock {
-    public final static MapCodec<MixedBeerBlock> CODEC = simpleCodec(MixedBeerBlock::new);
     public final static VoxelShape ONE_MUG_SHAPE = Block.box(4, 0, 4, 12, 6, 12);
 
     public MixedBeerBlock(Properties properties) {
@@ -84,11 +82,6 @@ public class MixedBeerBlock extends BaseEntityBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
         return new MixedBeerBlockEntity(blockPos, blockState);
-    }
-
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
     }
 
     @Override

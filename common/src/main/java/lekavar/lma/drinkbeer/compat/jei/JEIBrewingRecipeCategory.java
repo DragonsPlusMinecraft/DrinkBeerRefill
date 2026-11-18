@@ -13,8 +13,8 @@ import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.IRecipeManager;
 import mezz.jei.api.recipe.RecipeIngredientRole;
-import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
@@ -25,7 +25,7 @@ import net.minecraft.world.item.ItemStack;
 
 
 public class JEIBrewingRecipeCategory implements IRecipeCategory<BrewingRecipe> {
-    public static final RecipeType<BrewingRecipe> TYPE = RecipeType.create(DrinkBeer.MOD_ID, "brewing", BrewingRecipe.class);
+    public static final IRecipeType<BrewingRecipe> TYPE = IRecipeType.create(DrinkBeer.MOD_ID, "brewing", BrewingRecipe.class);
     private static final String DRINK_BEER_YELLOW = "#F4D223";
     private static final String NIGHT_HOWL_CUP_HEX_COLOR = "#C69B82";
     private static final String PUMPKIN_DRINK_CUP_HEX_COLOR = "#AC6132";
@@ -41,7 +41,7 @@ public class JEIBrewingRecipeCategory implements IRecipeCategory<BrewingRecipe> 
     }
 
     @Override
-    public RecipeType<BrewingRecipe> getRecipeType() {
+    public IRecipeType<BrewingRecipe> getRecipeType() {
         return TYPE;
     }
 
@@ -69,19 +69,19 @@ public class JEIBrewingRecipeCategory implements IRecipeCategory<BrewingRecipe> 
     public void setRecipe(IRecipeLayoutBuilder builder, BrewingRecipe recipe, IFocusGroup focuses) {
         var ingredients = recipe.getIngredients();
         var slotBuilder = builder.addSlot(RecipeIngredientRole.INPUT, 28, 16);
-        slotBuilder.addIngredients(ingredients.get(0));
+        slotBuilder.add(ingredients.get(0));
 
         slotBuilder = builder.addSlot(RecipeIngredientRole.INPUT, 46, 16);
-        slotBuilder.addIngredients(ingredients.get(1));
+        slotBuilder.add(ingredients.get(1));
 
         slotBuilder = builder.addSlot(RecipeIngredientRole.INPUT, 28, 34);
-        slotBuilder.addIngredients(ingredients.get(2));
+        slotBuilder.add(ingredients.get(2));
 
         slotBuilder = builder.addSlot(RecipeIngredientRole.INPUT, 46, 34);
-        slotBuilder.addIngredients(ingredients.get(3));
+        slotBuilder.add(ingredients.get(3));
 
         slotBuilder = builder.addSlot(RecipeIngredientRole.OUTPUT, 128, 24);
-        slotBuilder.addItemStack(recipe.getResultItemNoRegistryAccess());
+        slotBuilder.add(recipe.getResultItemNoRegistryAccess());
 
         builder.moveRecipeTransferButton(156, 50);
     }

@@ -1,5 +1,6 @@
 package lekavar.lma.drinkbeer.utils;
 
+import net.minecraft.util.Prediction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
@@ -11,7 +12,7 @@ public class ItemStackHelper {
     public static void giveToPlayer(Player player, ItemStack stack) {
         player.getInventory().add(stack);
         if (!stack.isEmpty()) {
-            player.drop(stack, false);
+            player.drop(stack, false, Prediction.SERVER_ONLY);
         }
     }
 }

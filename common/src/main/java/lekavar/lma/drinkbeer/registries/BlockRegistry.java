@@ -103,11 +103,11 @@ public class BlockRegistry {
     }
 
     private static BlockBehaviour.Properties beerMug(ResourceKey<Block> key) {
-        return base(key).ignitedByLava().mapColor(MapColor.WOOD).strength(1.0F).noOcclusion().pushReaction(PushReaction.DESTROY);
+        return base(key).ignitedByLava().mapColor(MapColor.WOOD).strength(1.0F).noOcclusion().pushReaction(PushReaction.POPPED);
     }
 
     private static BlockBehaviour.Properties callBell(ResourceKey<Block> key) {
-        return base(key).mapColor(MapColor.METAL).strength(1.0F).pushReaction(PushReaction.DESTROY);
+        return base(key).mapColor(MapColor.METAL).strength(1.0F).pushReaction(PushReaction.POPPED);
     }
 
     private static BlockBehaviour.Properties gift(ResourceKey<Block> key) {
@@ -116,7 +116,7 @@ public class BlockRegistry {
 
     private static BlockBehaviour.Properties coloredLights(ResourceKey<Block> key) {
         return base(key).mapColor(MapColor.WOOD).strength(1.0F).sound(SoundType.WOOD)
-                .lightLevel(state -> 15).noCollision().noOcclusion().pushReaction(PushReaction.DESTROY);
+                .lightLevel(state -> 15).noCollision().noOcclusion().pushReaction(PushReaction.POPPED);
     }
 
     private static BlockBehaviour.Properties star(ResourceKey<Block> key) {
@@ -126,7 +126,7 @@ public class BlockRegistry {
 
     private static BlockBehaviour.Properties horseModel(ResourceKey<Block> key) {
         return base(key).mapColor(MapColor.WOOD).strength(1.0F).sound(SoundType.WOOD)
-                .noOcclusion().pushReaction(PushReaction.DESTROY);
+                .noOcclusion().pushReaction(PushReaction.POPPED);
     }
 
     private static BlockBehaviour.Properties recipeBoard(ResourceKey<Block> key) {
@@ -138,7 +138,7 @@ public class BlockRegistry {
     }
 
     private static BlockBehaviour.Properties spice(ResourceKey<Block> key) {
-        return base(key).ignitedByLava().mapColor(MapColor.WOOD).strength(1.0F).pushReaction(PushReaction.DESTROY);
+        return base(key).ignitedByLava().mapColor(MapColor.WOOD).strength(1.0F).pushReaction(PushReaction.POPPED);
     }
 
     public static void init() {

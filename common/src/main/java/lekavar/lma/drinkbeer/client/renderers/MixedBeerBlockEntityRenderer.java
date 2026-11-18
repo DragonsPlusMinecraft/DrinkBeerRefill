@@ -55,7 +55,7 @@ public class MixedBeerBlockEntityRenderer implements BlockEntityRenderer<MixedBe
         }
         poseStack.pushPose();
         poseStack.translate(0.5, 0.25, 0.5);
-        poseStack.mulPose(Axis.YP.rotationDegrees(renderState.angle));
+        poseStack.rotateDegrees(Axis.YP, renderState.angle);
         renderState.beer.submit(poseStack, nodeCollector, renderState.lightCoords, OverlayTexture.NO_OVERLAY, 0);
         poseStack.popPose();
     }

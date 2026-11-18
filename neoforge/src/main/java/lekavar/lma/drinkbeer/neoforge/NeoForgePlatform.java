@@ -126,7 +126,7 @@ public final class NeoForgePlatform implements PlatformHooks {
     @Override
     public void registerConfig() {
         DrinkBeerConfigNeoForge.install();
-        modContainer.registerConfig(ModConfig.Type.SERVER, DrinkBeerConfigNeoForge.SPEC, "drinkbeer-server.toml");
+        modContainer.registerConfig(ModConfig.Type.SYNCED, DrinkBeerConfigNeoForge.SPEC, "drinkbeer-server.toml");
     }
 
     @Override

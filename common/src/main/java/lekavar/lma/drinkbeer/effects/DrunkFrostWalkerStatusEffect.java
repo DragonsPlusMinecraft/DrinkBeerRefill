@@ -32,7 +32,7 @@ public class DrunkFrostWalkerStatusEffect extends MobEffect {
                             BlockPredicate.unobstructed()
                     )
             ),
-            BlockStateProvider.simple(Blocks.FROSTED_ICE),
+            BlockStateProvider.holderOf(Blocks.FROSTED_ICE),
             Optional.of(GameEvent.BLOCK_PLACE)
     );
 

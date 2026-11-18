@@ -13,8 +13,7 @@ dependencies {
     compileOnly "mezz.jei:jei-${jei_minecraft_version}-fabric:${jei_version}"
     runtimeOnly "mezz.jei:jei-${jei_minecraft_version}-fabric:${jei_version}"
 
-    // Fabric Loader JUnit 0.19.3 is built against JUnit Platform 1.10;
-    // keep the launcher lifecycle aligned so Knot remains the test TCCL.
+    // Match Fabric Loader's JUnit Platform version so tests run with the Knot class loader.
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation "net.fabricmc:fabric-loader-junit:${fabric_loader_version}"
