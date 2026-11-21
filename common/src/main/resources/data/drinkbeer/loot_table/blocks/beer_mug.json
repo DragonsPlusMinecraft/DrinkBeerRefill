@@ -9,15 +9,13 @@
           "name": "drinkbeer:beer_mug"
         }
       ],
-      "conditions": [
-        {
-          "condition": "minecraft:block_state_property",
-          "block": "drinkbeer:beer_mug",
-          "properties": {
-            "amount": "1"
-          }
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "drinkbeer:beer_mug",
+        "state": {
+          "amount": "1"
         }
-      ]
+      }
     },
     {
       "rolls": 2,
@@ -27,15 +25,13 @@
           "name": "drinkbeer:beer_mug"
         }
       ],
-      "conditions": [
-        {
-          "condition": "minecraft:block_state_property",
-          "block": "drinkbeer:beer_mug",
-          "properties": {
-            "amount": "2"
-          }
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "drinkbeer:beer_mug",
+        "state": {
+          "amount": "2"
         }
-      ]
+      }
     },
     {
       "rolls": 3,
@@ -45,15 +41,13 @@
           "name": "drinkbeer:beer_mug"
         }
       ],
-      "conditions": [
-        {
-          "condition": "minecraft:block_state_property",
-          "block": "drinkbeer:beer_mug",
-          "properties": {
-            "amount": "3"
-          }
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "drinkbeer:beer_mug",
+        "state": {
+          "amount": "3"
         }
-      ]
+      }
     }
   ]
 }

@@ -9,11 +9,9 @@
           "name": "drinkbeer:spice_smoked_eglia_bud"
         }
       ],
-      "conditions": [
-        {
-          "condition": "minecraft:survives_explosion"
-        }
-      ]
+      "condition": {
+        "type": "minecraft:survives_explosion"
+      }
     }
   ]
 }

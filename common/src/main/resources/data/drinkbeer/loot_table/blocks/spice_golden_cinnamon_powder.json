@@ -9,11 +9,9 @@
           "name": "drinkbeer:spice_golden_cinnamon_powder"
         }
       ],
-      "conditions": [
-        {
-          "condition": "minecraft:survives_explosion"
-        }
-      ]
+      "condition": {
+        "type": "minecraft:survives_explosion"
+      }
     }
   ]
 }

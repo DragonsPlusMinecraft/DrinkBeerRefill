@@ -9,11 +9,9 @@
           "name": "drinkbeer:recipe_board_beer_mug_night_howl_kvass"
         }
       ],
-      "conditions": [
-        {
-          "condition": "minecraft:survives_explosion"
-        }
-      ]
+      "condition": {
+        "type": "minecraft:survives_explosion"
+      }
     }
   ]
 }
